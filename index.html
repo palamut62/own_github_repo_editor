@@ -100,7 +100,7 @@
         }
 
         .nav-title {
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
             color: var(--text-secondary);
             font-weight: 700;
@@ -116,7 +116,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
@@ -167,8 +167,9 @@
         }
 
         .page-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
+            color: var(--text-primary);
         }
 
         .search-bar {
@@ -185,7 +186,7 @@
             border-radius: 6px;
             font-family: inherit;
             outline: none;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .btn-primary {
@@ -196,7 +197,7 @@
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .btn-dark {
@@ -265,7 +266,7 @@
 
         .card-title {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -273,7 +274,7 @@
         }
 
         .card-desc {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -288,13 +289,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             margin-top: auto;
         }
 
         .badge {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
             padding: 0;
             background: transparent !important;
@@ -427,15 +428,15 @@
         <div class="nav-group">
             <div class="nav-title">Browse</div>
             <div class="nav-item active" id="navAll" onclick="applyFilter('all')">
-                <span>📦 All Repos</span>
+                <span>All Repos</span>
                 <span class="nav-badge" id="countAll">0</span>
             </div>
             <div class="nav-item" id="navSource" onclick="applyFilter('source')">
-                <span>✨ Sources</span>
+                <span>Sources</span>
                 <span class="nav-badge" id="countSource">0</span>
             </div>
             <div class="nav-item" id="navFork" onclick="applyFilter('fork')">
-                <span>🍴 Forks</span>
+                <span>Forks</span>
                 <span class="nav-badge" id="countFork">0</span>
             </div>
         </div>
@@ -443,19 +444,19 @@
         <div class="nav-group">
             <div class="nav-title">Actions</div>
             <div class="nav-item" onclick="startAIRename()">
-                <span>🤖 AI Smart Rename</span>
+                <span>AI Smart Rename</span>
             </div>
             <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
-                <span>🗑️ Delete Selected</span>
+                <span>Delete Selected</span>
             </div>
         </div>
 
         <div class="sidebar-footer">
             <div class="nav-item" onclick="openSettings()">
-                <span>⚙️ Settings</span>
+                <span>Settings</span>
             </div>
             <div class="nav-item" onclick="document.getElementById('helpModal').style.display='flex'">
-                <span>❓ Help</span>
+                <span>Help</span>
             </div>
             <div
                 style="margin-top: 15px; font-size: 11px; color: #666; text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center;">
