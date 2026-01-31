@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>GitHub Repo Temizleyici</title>
+    <title>GitHub Repo Editor</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -245,6 +245,39 @@
             border-radius: 4px;
         }
 
+        /* Top Warning Banner */
+        .warning-banner {
+            background-color: #3e2808;
+            /* Dark yellow/orange */
+            border: 1px solid #9a6700;
+            color: #e3b341;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-banner.danger {
+            background-color: #490808;
+            /* Dark red */
+            border: 1px solid #ab1414;
+            color: #ff7b72;
+        }
+
+        .warning-banner.info {
+            background-color: #0c2d6b;
+            /* Dark blue */
+            border: 1px solid #1f6feb;
+            color: #58a6ff;
+        }
+
+        .warning-icon {
+            font-size: 1.2em;
+        }
+
         .btn-ai {
             background: #8957e5;
             /* Purple for AI */
@@ -301,14 +334,23 @@
 
     <div class="container">
         <!-- ... existing HTML ... -->
-        <h2 style="border-bottom: 1px solid #30363d; padding-bottom: 10px;">GitHub Temizleyici</h2>
+        <h2 style="border-bottom: 1px solid #30363d; padding-bottom: 10px;">GitHub Repo Editor</h2>
 
         <div class="auth-box" style="justify-content: space-between; align-items: center;">
-            <div style="font-weight: bold; color: #8b949e;">GitHub Repo Yöneticisi</div>
+            <div style="font-weight: bold; color: #8b949e;">GitHub Repo Manager</div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="openSettings()" style="background: #30363d; color: c9d1d9;">⚙️ Ayarlar</button>
-                <button class="btn-load" onclick="loadRepos()">Repoları Getir</button>
+                <button onclick="document.getElementById('helpModal').style.display='flex'"
+                    style="background: #21262d; color: #8b949e; border: 1px solid #30363d;">❓ Help</button>
+                <button onclick="openSettings()" style="background: #30363d; color: c9d1d9;">⚙️ Settings</button>
+                <button class="btn-load" onclick="loadRepos()">Load Repos</button>
             </div>
+        </div>
+
+        <!-- Dynamic Warning Banner -->
+        <div id="topBanner" class="warning-banner">
+            <span class="warning-icon">⚠️</span>
+            <span id="bannerText">Renaming repositories will change their Remote URLs. Deleting repositories is
+                permanent. Please proceed with caution!</span>
         </div>
 
         <div id="status" style="color: #e3b341; margin-bottom: 10px; min-height: 20px;"></div>
@@ -316,71 +358,87 @@
 
 
         <div id="statsBar" class="stats" style="display:none;">
-            <div class="stat-item">Toplam: <span id="totalCount">0</span></div>
-            <div class="stat-item" style="color: #3fb950;">Kaynak: <span id="sourceCount">0</span></div>
+            <div class="stat-item">Total: <span id="totalCount">0</span></div>
+            <div class="stat-item" style="color: #3fb950;">Source: <span id="sourceCount">0</span></div>
             <div class="stat-item" style="color: #a371f7;">Fork: <span id="forkCount">0</span></div>
         </div>
 
-        <!-- Filtreleme Butonları -->
+        <!-- Filtering Buttons -->
         <div id="filterButtons" style="display:none; gap: 10px; margin-bottom: 15px;">
-            <button onclick="applyFilter('all')" id="btnFilterAll" class="filter-btn active">Tümü</button>
-            <button onclick="applyFilter('source')" id="btnFilterSource" class="filter-btn">Kaynak</button>
+            <button onclick="applyFilter('all')" id="btnFilterAll" class="filter-btn active">All</button>
+            <button onclick="applyFilter('source')" id="btnFilterSource" class="filter-btn">Source</button>
             <button onclick="applyFilter('fork')" id="btnFilterFork" class="filter-btn">Fork</button>
         </div>
 
-        <!-- Araç Çubuğu (Sıralama ve Sayfa Boyutu) -->
+        <!-- Toolbar (Sort and Page Size) -->
         <div id="toolbar" style="display:none; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
             <select id="sortSelect" onchange="changeSort()"
                 style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
-                <option value="newest">En Yeni Güncelleme</option>
-                <option value="oldest">En Eski Güncelleme</option>
+                <option value="newest">Newest Update</option>
+                <option value="oldest">Oldest Update</option>
             </select>
 
             <select id="pageSizeSelect" onchange="changePageSize()"
                 style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
-                <option value="10">10 Adet / Sayfa</option>
-                <option value="20">20 Adet / Sayfa</option>
-                <option value="50">50 Adet / Sayfa</option>
+                <option value="10">10 Items / Page</option>
+                <option value="20">20 Items / Page</option>
+                <option value="50">50 Items / Page</option>
             </select>
         </div>
 
-        <!-- Üst Sayfalama -->
+        <!-- Pagination Top -->
         <div id="paginationTop" style="display:none; justify-content: flex-end; gap: 5px; margin-bottom: 10px;">
-            <button onclick="changePage(-1)" class="prevBtn">« Önceki</button>
-            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Sayfa 1 / 1</span>
-            <button onclick="changePage(1)" class="nextBtn">Sonraki »</button>
+            <button onclick="changePage(-1)" class="prevBtn">« Previous</button>
+            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Page 1 / 1</span>
+            <button onclick="changePage(1)" class="nextBtn">Next »</button>
         </div>
 
-        <!-- Kontrol Paneli (Sil ve Seç) -->
+        <!-- Control Panel (Delete and Select) -->
         <div id="controlPanel"
             style="display:none; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                <label for="selectAll" style="cursor: pointer; user-select: none;">Tümünü Seç (Bu Sayfa)</label>
+                <label for="selectAll" style="cursor: pointer; user-select: none;">Select All (This Page)</label>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn-ai" onclick="startAIRename()">🤖 AI ile İsimlendir</button>
+                <button class="btn-ai" onclick="startAIRename()">🤖 AI Smart Rename</button>
                 <button id="deleteBtn" class="btn-delete" onclick="deleteSelected()"
-                    style="margin: 0; padding: 8px 16px; font-size: 0.9em; width: auto;">SEÇİLENLERİ SİL</button>
+                    style="margin: 0; padding: 8px 16px; font-size: 0.9em; width: auto;">DELETE SELECTED</button>
             </div>
         </div>
 
         <ul id="repoList" class="repo-list"></ul>
 
-        <!-- Alt Sayfalama -->
+        <!-- Pagination Bottom -->
         <div id="paginationBottom" style="display:none; justify-content: center; gap: 5px; margin-top: 20px;">
-            <button onclick="changePage(-1)" class="prevBtn">« Önceki</button>
-            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Sayfa 1 / 1</span>
-            <button onclick="changePage(1)" class="nextBtn">Sonraki »</button>
+            <button onclick="changePage(-1)" class="prevBtn">« Previous</button>
+            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Page 1 / 1</span>
+            <button onclick="changePage(1)" class="nextBtn">Next »</button>
         </div>
     </div>
 
-    <!-- Ayarlar Modalı -->
+
+
+    <!-- Custom Alert Modal -->
+    <div id="customModal"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            <h3 id="modalTitle" style="margin-top: 0; color: #58a6ff;">Title</h3>
+            <div id="modalContent"
+                style="margin-bottom: 20px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">Content</div>
+            <div style="text-align: right;">
+                <button onclick="closeModal()" style="background: #238636; color: white;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
     <div id="settingsModal"
         style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1002;">
         <div
             style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; width: 90%;">
-            <h3 style="margin-top: 0; color: #c9d1d9;">⚙️ Ayarlar</h3>
+            <h3 style="margin-top: 0; color: #c9d1d9;">⚙️ Settings</h3>
 
             <label style="display:block; margin-bottom:5px;">GitHub Token:</label>
             <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
@@ -390,43 +448,29 @@
 
             <div style="text-align: right; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button onclick="document.getElementById('settingsModal').style.display='none'"
-                    style="background: #30363d; color: white;">İptal</button>
-                <button onclick="saveSettings()" style="background: #238636; color: white;">Kaydet</button>
+                    style="background: #30363d; color: white;">Cancel</button>
+                <button onclick="saveSettings()" style="background: #238636; color: white;">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- Özel Alert Modalı -->
-    <div id="customModal"
-        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000;">
-        <div
-            style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-            <h3 id="modalTitle" style="margin-top: 0; color: #58a6ff;">Başlık</h3>
-            <div id="modalContent"
-                style="margin-bottom: 20px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">İçerik</div>
-            <div style="text-align: right;">
-                <button onclick="closeModal()" style="background: #238636; color: white;">Tamam</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rename Modalı (Geniş) -->
+    <!-- Rename Modal (Wide) -->
     <div id="renameModal"
         style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1001;">
         <div
             style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 900px; width: 95%; height: 80%; display: flex; flex-direction: column;">
-            <h3 style="margin-top: 0; color: #8957e5;">🤖 AI Önerileri</h3>
+            <h3 style="margin-top: 0; color: #8957e5;">🤖 AI Suggestions</h3>
             <div style="margin-bottom: 10px; color: #8b949e; font-size: 0.9em;">
-                ⚠️ İsimleri değiştirmek <b>Remote URL</b>'leri bozabilir. Yerel projelerinizde `git remote set-url`
-                yapmanız gerekebilir.
+                ⚠️ Renaming repositories will break <b>Remote URLs</b>. You may need to run `git remote set-url` in your
+                local projects.
             </div>
             <div style="flex: 1; overflow-y: auto; margin-bottom: 20px; border: 1px solid #30363d; border-radius: 6px;">
                 <table class="rename-table">
                     <thead>
                         <tr>
-                            <th>Mevcut İsim</th>
-                            <th>AI Önerisi (Düzenlenebilir)</th>
-                            <th style="width: 100px;">Durum</th>
+                            <th>Current Name</th>
+                            <th>AI Suggestion (Editable)</th>
+                            <th style="width: 100px;">Status</th>
                         </tr>
                     </thead>
                     <tbody id="renameTableBody"></tbody>
@@ -434,10 +478,41 @@
             </div>
             <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
                 <button onclick="document.getElementById('renameModal').style.display='none'"
-                    style="background: #30363d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">İptal</button>
+                    style="background: #30363d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
                 <button id="btnExecuteRename" onclick="executeRenames()"
-                    style="background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Tümünü
-                    Onayla ve Değiştir</button>
+                    style="background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Confirm
+                    & Rename All</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Help Modal -->
+    <div id="helpModal"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1003;">
+        <div
+            style="background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d; max-width: 600px; width: 90%;">
+            <h3 style="margin-top: 0; color: #58a6ff;">❓ Help & Information</h3>
+            <div style="color: #c9d1d9; line-height: 1.6;">
+                <p><strong>🧹 Deleting Repositories:</strong><br>
+                    Selected repositories will be <b>permanently deleted</b> from GitHub. This action cannot be
+                    undone.</p>
+
+                <p><strong>🤖 AI Smart Rename:</strong><br>
+                    The app analyzes the README of your repositories and suggests better names. <br>
+                    <b>Important:</b> Renaming a repository changes its URL (e.g., github.com/user/old ->
+                    github.com/user/new). <br>
+                    If you have local clones, you must update their remotes: <br>
+                    <code>git remote set-url origin NEW_URL</code>
+                </p>
+
+                <p><strong>⏳ Processing Time:</strong><br>
+                    Renaming multiple repositories involves analyzing content and waiting for API responses. It
+                    might take some time depending on the number of repos.</p>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button onclick="document.getElementById('helpModal').style.display='none'"
+                    style="background: #238636; color: white;">Got it</button>
             </div>
         </div>
     </div>
@@ -458,7 +533,23 @@
             // Dropdown defaults
             document.getElementById('sortSelect').value = currentSort;
             document.getElementById('pageSizeSelect').value = itemsPerPage;
+
+            // Default Banner
+            updateBanner('warning', 'Renaming repositories will change their Remote URLs. Deleting repositories is permanent. Please proceed with caution!');
         });
+
+        function updateBanner(type, message) {
+            const banner = document.getElementById('topBanner');
+            const icon = banner.querySelector('.warning-icon');
+            const text = document.getElementById('bannerText');
+
+            banner.className = 'warning-banner ' + type;
+            text.innerText = message;
+
+            if (type === 'danger') icon.innerText = '🛑';
+            else if (type === 'info') icon.innerText = 'ℹ️';
+            else icon.innerText = '⚠️';
+        }
 
         async function openSettings() {
             const savedToken = await window.api.getToken();
@@ -478,38 +569,38 @@
             await window.api.saveRouterKey(routerKey);
 
             document.getElementById('settingsModal').style.display = 'none';
-            alert('Ayarlar kaydedildi!');
+            alert('Settings saved!');
         }
 
         async function loadRepos() {
             const token = await window.api.getToken();
 
             if (!token) {
-                showModal('Uyarı', 'Lütfen ayarlardan GitHub Token girin!');
-                openSettings(); // Kolaylık olsun diye ayarları aç
+                showModal('Warning', 'Please enter your GitHub Token in Settings!');
+                openSettings();
                 return;
             }
 
-            document.getElementById('status').innerText = 'Veriler GitHub\'dan çekiliyor...';
+            document.getElementById('status').innerText = 'Fetching data from GitHub...';
             resetUI();
 
-            // Electron API çağrısı
+            // Electron API call
             const result = await window.api.getRepos(token);
 
             if (result.success) {
                 allRepos = result.data;
 
-                // UI Göster
+                // UI Show
                 document.getElementById('statsBar').style.display = 'flex';
                 document.getElementById('filterButtons').style.display = 'flex';
                 document.getElementById('toolbar').style.display = 'flex';
 
-                applyFilter('all'); // Varsayılan: Tümü
+                applyFilter('all'); // Default: All
                 updateStats();
                 document.getElementById('status').innerText = '';
             } else {
-                document.getElementById('status').innerText = 'Hata: ' + result.error;
-                showModal('Hata', 'Veri çekilemedi: ' + result.error);
+                document.getElementById('status').innerText = 'Error: ' + result.error;
+                showModal('Error', 'Could not fetch data: ' + result.error);
             }
 
         }
@@ -579,13 +670,13 @@
             const pageRepos = filteredRepos.slice(start, end);
 
             if (pageRepos.length === 0) {
-                list.innerHTML = '<li style="text-align:center; padding:20px; color:#8b949e;">Kriterlere uygun repo bulunamadı.</li>';
+                list.innerHTML = '<li style="text-align:center; padding:20px; color:#8b949e;">No repositories found matching criteria.</li>';
             } else {
                 pageRepos.forEach(repo => {
                     const li = document.createElement('li');
                     const itemClass = repo.fork ? 'fork' : 'source';
                     const badgeClass = repo.fork ? 'badge-fork' : 'badge-source';
-                    const badgeText = repo.fork ? 'FORK' : 'KAYNAK';
+                    const badgeText = repo.fork ? 'FORK' : 'SOURCE';
 
                     li.className = `repo-item ${itemClass}`;
                     li.innerHTML = `
@@ -595,7 +686,7 @@
                             <span class="${badgeClass} badge">${badgeText}</span>
                             <span class="repo-name">${repo.name}</span>
                             <div style="font-size: 0.8em; color: #8b949e; margin-top: 4px;">
-                                ${repo.description ? repo.description.substring(0, 60) + '...' : 'Açıklama yok'}
+                                ${repo.description ? repo.description.substring(0, 60) + '...' : 'No description'}
                             </div>
                         </div>
                         <div class="repo-meta">
@@ -634,9 +725,9 @@
                 return;
             }
 
-            // Tüm 'pageInfo' class'lı elementleri güncelle (hem üst hem alt)
+            // Update 'pageInfo' for all elements
             const pageInfoSpans = document.querySelectorAll('.pageInfo');
-            pageInfoSpans.forEach(el => el.innerText = `Sayfa ${currentPage} / ${totalPages}`);
+            pageInfoSpans.forEach(el => el.innerText = `Page ${currentPage} / ${totalPages}`);
 
             // Butonları bul ve güncelle
             const prevBtns = document.querySelectorAll('.prevBtn');
@@ -687,11 +778,11 @@
             if (count > 0) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
-                btn.innerText = `SEÇİLENLERİ SİL (${count})`;
+                btn.innerText = `DELETE SELECTED (${count})`;
             } else {
                 btn.disabled = true;
                 btn.style.opacity = '0.5';
-                btn.innerText = 'SEÇİLENLERİ SİL';
+                btn.innerText = 'DELETE SELECTED';
             }
         }
 
@@ -702,37 +793,42 @@
 
             if (reposToDelete.length === 0) return;
 
-            // Onay İste
+            // Request Confirmation
             const confirmed = await window.api.confirmDelete(reposToDelete.length);
             if (!confirmed) return;
 
+            updateBanner('danger', `DELETING ${reposToDelete.length} repositories... do NOT close the app!`);
+
             const statusEl = document.getElementById('status');
-            statusEl.innerText = '⚠️ Silme işlemi yapılıyor, lütfen bekleyin...';
+            statusEl.innerText = '⚠️ Deletion in progress, please wait...';
             statusEl.className = 'status-loading';
 
-            // API'ye gönder
+            // Send to API
             const results = await window.api.deleteRepos({ token, repos: reposToDelete });
 
             statusEl.className = '';
             statusEl.innerText = '';
 
-            // Sonucu Bildir
+            // Report Results
             const successResults = results.filter(r => r.status === 'Silindi');
             const errorResults = results.filter(r => r.status !== 'Silindi');
 
-            let message = `✅ Başarılı: ${successResults.length}\n❌ Hatalı: ${errorResults.length}`;
+            let message = `✅ Success: ${successResults.length}\n❌ Failed: ${errorResults.length}`;
 
             if (errorResults.length > 0) {
-                message += '\n\n🔍 Hata Detayları:\n' + errorResults.map(r => `- ${r.name}: ${r.status}`).join('\n');
+                message += '\n\n🔍 Error Details:\n' + errorResults.map(r => `- ${r.name}: ${r.status}`).join('\n');
             }
 
             showModal(
-                errorResults.length > 0 ? 'İşlem Tamamlandı (Bazı Hatalar Var)' : 'İşlem Başarılı!',
+                errorResults.length > 0 ? 'Operation Completed (With Errors)' : 'Operation Successful!',
                 message
             );
 
-            // Listeyi Yenile (Silinenleri listeden çıkarabiliriz ama en kolayı yeniden çekmek)
+            // Refresh List
             loadRepos();
+
+            // Reset Banner
+            updateBanner('warning', 'Renaming repositories will change their Remote URLs. Deleting repositories is permanent. Please proceed with caution!');
         }
 
         function showModal(title, content) {
@@ -758,18 +854,22 @@
             const token = await window.api.getToken();
             const routerKey = await window.api.getRouterKey();
 
-            if (repos.length === 0) return showModal('Uyarı', 'Lütfen en az bir repo seçin.');
+            if (repos.length === 0) return showModal('Warning', 'Please select at least one repo.');
             if (!routerKey) {
-                showModal('Uyarı', 'Lütfen ayarlardan OpenRouter API Key girin.');
+                showModal('Warning', 'Please enter your OpenRouter API Key in Settings.');
                 openSettings();
                 return;
             }
 
             const statusEl = document.getElementById('status');
-            statusEl.innerText = '🤖 AI Analizi yapılıyor, lütfen bekleyin...';
+            statusEl.innerText = '🤖 AI Analysis in progress, please wait...';
             statusEl.className = 'status-loading';
 
-            // Çağır
+            let bannerMsg = 'AI Analysis in progress...';
+            if (repos.length > 5) bannerMsg += ' This might take a while due to multiple selections.';
+            updateBanner('info', bannerMsg);
+
+            // Call API
             const results = await window.api.analyzeReposAI({ token, routerKey, repos });
 
             statusEl.className = '';
@@ -799,9 +899,9 @@
             const btn = document.getElementById('btnExecuteRename');
             const originalText = btn.innerText;
 
-            // Yükleniyor durumu
+            // Loading state
             btn.disabled = true;
-            btn.innerText = 'İşleniyor... ⏳';
+            btn.innerText = 'Processing... ⏳';
             btn.style.opacity = '0.7';
             btn.style.cursor = 'wait';
 
@@ -833,15 +933,16 @@
             });
 
             setTimeout(() => {
-                alert('İşlem tamamlandı.');
+                alert('Operation completed.');
                 document.getElementById('renameModal').style.display = 'none';
 
-                // Butonu eski haline getir
+                // Restore button
                 btn.disabled = false;
                 btn.innerText = originalText;
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
 
+                updateBanner('warning', 'Renaming repositories will change their Remote URLs. Deleting repositories is permanent. Please proceed with caution!');
                 loadRepos();
             }, 1000);
         }
