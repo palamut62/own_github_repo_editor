@@ -358,6 +358,17 @@
             opacity: 0.6;
         }
 
+        .badge-public {
+            color: var(--accent-green);
+        }
+
+        .badge-private {
+            color: var(--danger);
+            background: rgba(248, 81, 73, 0.1) !important;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
         .card-check {
             position: absolute;
             top: 20px;
@@ -1484,6 +1495,8 @@
                         licenseBadge = `<div class="badge ${isMit ? 'badge-mit' : 'badge-license'}">📜 ${repo.license.spdx_id}</div>`;
                     }
 
+                    const visibilityBadge = repo.private ? '<div class="badge badge-private">Private</div>' : '<div class="badge badge-public">Public</div>';
+
                     card.innerHTML = `
                         <input type="checkbox" class="card-check" value="${repo.full_name}" onclick="event.stopPropagation()">
                         <div class="card-header">
@@ -1491,7 +1504,10 @@
                             <div class="repo-details">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <div class="card-title" title="${repo.name}" style="margin:0;">${repo.name}</div>
-                                    <div class="badge ${badgeClass}">${badge}</div>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <div class="badge ${badgeClass}">${badge}</div>
+                                        ${visibilityBadge}
+                                    </div>
                                 </div>
                             </div>
                         </div>
