@@ -583,6 +583,21 @@
             }
         }
 
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
         .confirm-icon {
             font-size: 40px;
             text-align: center;
@@ -683,15 +698,15 @@
         <div class="sidebar-header">
             <div class="nav-title">Browse</div>
             <div class="nav-item active" id="navAll" onclick="applyFilter('all')">
-                <span>All Repos</span>
+                <span>📁 All Repos</span>
                 <span class="nav-badge" id="countAll">0</span>
             </div>
             <div class="nav-item" id="navSource" onclick="applyFilter('source')">
-                <span>Sources</span>
+                <span>🌿 Sources</span>
                 <span class="nav-badge" id="countSource">0</span>
             </div>
             <div class="nav-item" id="navFork" onclick="applyFilter('fork')">
-                <span>Forks</span>
+                <span>🔀 Forks</span>
                 <span class="nav-badge" id="countFork">0</span>
             </div>
         </div>
@@ -700,10 +715,10 @@
             <div class="nav-group">
                 <div class="nav-title">Actions</div>
                 <div class="nav-item" onclick="startAIRename()">
-                    <span>AI Smart Rename</span>
+                    <span>🧠 AI Smart Rename</span>
                 </div>
                 <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
-                    <span>Delete Selected</span>
+                    <span>🗑️ Delete Selected</span>
                 </div>
             </div>
 
@@ -734,9 +749,12 @@
             </div>
 
             <div class="nav-group">
-                <div class="nav-title">Analytics & Cleanup</div>
+                <div class="nav-title">Analytics & Tools</div>
                 <div class="nav-item" onclick="openAnalysisModal()">
                     <span>📊 Repo Analysis</span>
+                </div>
+                <div class="nav-item" onclick="openRepoAnalyzerModal()">
+                    <span>🔍 Repo Inspector</span>
                 </div>
                 <div class="nav-item" onclick="filterStaleRepos()">
                     <span>🕐 Stale Repos</span>
@@ -745,17 +763,17 @@
                     <span>💾 Large Repos</span>
                 </div>
                 <div class="nav-item" onclick="filterUnchangedForks()">
-                    <span>🔀 Unused Forks</span>
+                    <span>🍴 Unused Forks</span>
                 </div>
             </div>
         </div>
 
         <div class="sidebar-footer">
             <div class="nav-item" onclick="openSettings()">
-                <span>Settings</span>
+                <span>⚙️ Settings</span>
             </div>
             <div class="nav-item" onclick="document.getElementById('helpModal').style.display='flex'">
-                <span>Help</span>
+                <span>❓ Help</span>
             </div>
             <div
                 style="margin-top: 15px; font-size: 11px; color: #666; text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center;">
@@ -844,7 +862,9 @@
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-box" style="position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('settingsModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('settingsModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
             <label>GitHub Token:</label>
             <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
@@ -858,8 +878,11 @@
 
     <!-- Help Modal -->
     <div id="helpModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 650px; font-size: 12px; line-height: 1.6; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('helpModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 650px; font-size: 12px; line-height: 1.6; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('helpModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 16px 0; color: var(--accent-blue); font-size: 15px;">User Guide</h3>
 
             <div style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
@@ -867,7 +890,8 @@
                 <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <h4 style="margin: 0 0 8px 0; color: var(--accent-green); font-size: 12px;">Getting Started</h4>
                     <p style="margin: 0; color: var(--text-secondary);">
-                        Open <strong>Settings</strong> and enter your <strong>GitHub Token</strong> (with <code>repo</code> and <code>delete_repo</code> scopes).
+                        Open <strong>Settings</strong> and enter your <strong>GitHub Token</strong> (with
+                        <code>repo</code> and <code>delete_repo</code> scopes).
                         For AI features, also add your <strong>OpenRouter API Key</strong>.
                     </p>
                 </div>
@@ -891,11 +915,14 @@
                 </div>
 
                 <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
-                    <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">AI Features (Requires OpenRouter Key)</h4>
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">AI Features (Requires
+                        OpenRouter Key)</h4>
                     <ul style="margin: 0; padding-left: 16px; color: var(--text-secondary);">
-                        <li><strong>AI Smart Rename:</strong> Analyzes README content and suggests appropriate repository names</li>
+                        <li><strong>AI Smart Rename:</strong> Analyzes README content and suggests appropriate
+                            repository names</li>
                         <li><strong>AI Description:</strong> Generates professional descriptions based on README</li>
-                        <li><strong>AI README Creator:</strong> Creates README.md files analyzing repository structure</li>
+                        <li><strong>AI README Creator:</strong> Creates README.md files analyzing repository structure
+                        </li>
                     </ul>
                 </div>
 
@@ -912,7 +939,8 @@
                 <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <h4 style="margin: 0 0 8px 0; color: var(--accent-green); font-size: 12px;">Repository Analysis</h4>
                     <p style="margin: 0; color: var(--text-secondary);">
-                        Click <strong>Analysis</strong> to scan all repositories and identify: stale repos (no updates in 6+ months),
+                        Click <strong>Analysis</strong> to scan all repositories and identify: stale repos (no updates
+                        in 6+ months),
                         large repos (50+ MB), unchanged forks, and repos without stars. Helps you clean up and organize.
                     </p>
                 </div>
@@ -921,7 +949,8 @@
                     <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">Fork Management</h4>
                     <p style="margin: 0; color: var(--text-secondary);">
                         Double-click a forked repository to see sync status with upstream.
-                        Use the <strong>Sync</strong> button to update your fork with the latest changes from the parent repository.
+                        Use the <strong>Sync</strong> button to update your fork with the latest changes from the parent
+                        repository.
                     </p>
                 </div>
 
@@ -931,8 +960,11 @@
 
     <!-- Rename Modal -->
     <div id="renameModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 900px; height: 80%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('renameModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 900px; height: 80%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('renameModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Suggestions</h3>
             <div
                 style="flex: 1; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
@@ -956,7 +988,9 @@
     <!-- Custom Alert -->
     <div id="customModal" class="modal-overlay">
         <div class="modal-box" style="position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('customModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('customModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 id="modalTitle">Title</h3>
             <div id="modalContent" style="margin-bottom: 20px;">Content</div>
             <button class="btn-primary"
@@ -966,8 +1000,11 @@
 
     <!-- AI Description Modal -->
     <div id="descriptionModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 800px; height: 70%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('descriptionModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 800px; height: 70%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('descriptionModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Description Generator</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 AI will analyze the README and suggest a professional description for each selected repository.
@@ -986,15 +1023,19 @@
                 </table>
             </div>
             <div style="text-align: right;">
-                <button id="btnApplyDescriptions" class="btn-primary" onclick="applyDescriptions()">Apply All Descriptions</button>
+                <button id="btnApplyDescriptions" class="btn-primary" onclick="applyDescriptions()">Apply All
+                    Descriptions</button>
             </div>
         </div>
     </div>
 
     <!-- AI README Modal -->
     <div id="readmeModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('readmeModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('readmeModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-green);">AI README Creator</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">
                 AI will analyze the repository files and generate a professional README.md
@@ -1015,7 +1056,9 @@
     <!-- Setup / Clone Info Modal -->
     <div id="setupModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 700px; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('setupModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('setupModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Setup / Clone Instructions</h3>
             <div id="setupContent" style="color: var(--text-secondary); font-size: 13px;">
                 <p>Select a repository first.</p>
@@ -1025,8 +1068,11 @@
 
     <!-- Repo Detail Modal (Double-click) -->
     <div id="repoDetailModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 520px; max-height: 85%; display: flex; flex-direction: column; padding: 16px; position: relative;">
-            <div onclick="document.getElementById('repoDetailModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 520px; max-height: 85%; display: flex; flex-direction: column; padding: 16px; position: relative;">
+            <div onclick="document.getElementById('repoDetailModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <div id="repoDetailContent" style="flex: 1; overflow-y: auto;">
                 <p style="color: var(--text-secondary);">Loading...</p>
             </div>
@@ -1036,7 +1082,9 @@
     <!-- Visibility Modal -->
     <div id="visibilityModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('visibilityModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('visibilityModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Change Visibility</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Change the visibility of selected repositories.
@@ -1062,7 +1110,9 @@
     <!-- Topics Modal -->
     <div id="topicsModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 600px; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('topicsModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('topicsModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Manage Topics</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Add or remove topics from selected repositories. Topics help categorize and discover repositories.
@@ -1079,14 +1129,22 @@
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 12px; color: var(--text-secondary);">Quick Add:</label>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                    <button class="btn-dark" onclick="addTopicQuick('javascript')" style="padding: 4px 10px; font-size: 11px;">javascript</button>
-                    <button class="btn-dark" onclick="addTopicQuick('typescript')" style="padding: 4px 10px; font-size: 11px;">typescript</button>
-                    <button class="btn-dark" onclick="addTopicQuick('python')" style="padding: 4px 10px; font-size: 11px;">python</button>
-                    <button class="btn-dark" onclick="addTopicQuick('electron')" style="padding: 4px 10px; font-size: 11px;">electron</button>
-                    <button class="btn-dark" onclick="addTopicQuick('nodejs')" style="padding: 4px 10px; font-size: 11px;">nodejs</button>
-                    <button class="btn-dark" onclick="addTopicQuick('ai')" style="padding: 4px 10px; font-size: 11px;">ai</button>
-                    <button class="btn-dark" onclick="addTopicQuick('react')" style="padding: 4px 10px; font-size: 11px;">react</button>
-                    <button class="btn-dark" onclick="addTopicQuick('nextjs')" style="padding: 4px 10px; font-size: 11px;">nextjs</button>
+                    <button class="btn-dark" onclick="addTopicQuick('javascript')"
+                        style="padding: 4px 10px; font-size: 11px;">javascript</button>
+                    <button class="btn-dark" onclick="addTopicQuick('typescript')"
+                        style="padding: 4px 10px; font-size: 11px;">typescript</button>
+                    <button class="btn-dark" onclick="addTopicQuick('python')"
+                        style="padding: 4px 10px; font-size: 11px;">python</button>
+                    <button class="btn-dark" onclick="addTopicQuick('electron')"
+                        style="padding: 4px 10px; font-size: 11px;">electron</button>
+                    <button class="btn-dark" onclick="addTopicQuick('nodejs')"
+                        style="padding: 4px 10px; font-size: 11px;">nodejs</button>
+                    <button class="btn-dark" onclick="addTopicQuick('ai')"
+                        style="padding: 4px 10px; font-size: 11px;">ai</button>
+                    <button class="btn-dark" onclick="addTopicQuick('react')"
+                        style="padding: 4px 10px; font-size: 11px;">react</button>
+                    <button class="btn-dark" onclick="addTopicQuick('nextjs')"
+                        style="padding: 4px 10px; font-size: 11px;">nextjs</button>
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
@@ -1104,7 +1162,9 @@
     <!-- License Modal -->
     <div id="licenseModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('licenseModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div onclick="document.getElementById('licenseModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-green);">Add License</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Add a license file to selected repositories. This helps others understand how they can use your code.
@@ -1135,8 +1195,11 @@
 
     <!-- Analysis Modal -->
     <div id="analysisModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 900px; max-height: 90%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
-            <div onclick="document.getElementById('analysisModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+        <div class="modal-box"
+            style="max-width: 900px; max-height: 90%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('analysisModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Repository Analysis</h3>
             <div id="analysisContent" style="flex: 1; overflow-y: auto; padding-right: 10px;">
                 <p style="color: var(--text-secondary); text-align: center; padding: 40px;">Click "Run Analysis" to scan
@@ -1146,6 +1209,53 @@
                 <button class="btn-primary" id="btnRunAnalysis" onclick="runAnalysis()" style="width: 100%;">
                     Run Analysis
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repo Inspector Modal -->
+    <div id="repoAnalyzerModal" class="modal-overlay">
+        <div class="modal-box"
+            style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('repoAnalyzerModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-purple);">Repo Inspector</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                Enter a GitHub repository URL to analyze its structure, technologies, and architecture. AI will create a
+                detailed project analysis document.
+            </p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="repoAnalyzerUrl" class="auth-input"
+                    placeholder="https://github.com/owner/repository" style="flex: 1; margin: 0;">
+                <button class="btn-primary" id="btnAnalyzeRepo" onclick="analyzeExternalRepo()"
+                    style="white-space: nowrap;">
+                    Analyze
+                </button>
+            </div>
+
+            <div id="repoAnalyzerContent"
+                style="flex: 1; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 15px;">
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">🔍</div>
+                    <p style="margin: 0;">Enter a GitHub URL above and click "Analyze" to inspect any public repository.
+                    </p>
+                    <p style="margin: 10px 0 0 0; font-size: 11px; opacity: 0.7;">The AI will analyze file structure,
+                        dependencies, and source code to create a comprehensive project document.</p>
+                </div>
+            </div>
+
+            <div id="repoAnalyzerActions"
+                style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-dark" onclick="copyAnalysis()" style="flex: 1;">
+                        Copy to Clipboard
+                    </button>
+                    <button class="btn-primary" onclick="downloadAnalysis()" style="flex: 1;">
+                        Download as MD
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1800,14 +1910,14 @@ npm start</pre>
                     <div style="background: var(--bg-body); border-radius: 6px; padding: 12px;">
                         <div style="font-size: 11px; font-weight: 600; color: var(--accent-yellow); margin-bottom: 8px;">Languages</div>
                         ${Object.entries(repo.languages).slice(0, 4).map(([lang, bytes]) => {
-                            const pct = ((bytes / Object.values(repo.languages).reduce((a, b) => a + b, 0)) * 100).toFixed(0);
-                            const colors = {'JavaScript': '#f1e05a', 'TypeScript': '#3178c6', 'Python': '#3572A5', 'HTML': '#e34c26', 'CSS': '#563d7c'};
-                            return `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 11px;">
+                const pct = ((bytes / Object.values(repo.languages).reduce((a, b) => a + b, 0)) * 100).toFixed(0);
+                const colors = { 'JavaScript': '#f1e05a', 'TypeScript': '#3178c6', 'Python': '#3572A5', 'HTML': '#e34c26', 'CSS': '#563d7c' };
+                return `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 11px;">
                                 <span style="width: 8px; height: 8px; border-radius: 50%; background: ${colors[lang] || '#808080'};"></span>
                                 <span style="flex: 1; color: var(--text-secondary);">${lang}</span>
                                 <span style="color: var(--text-secondary);">${pct}%</span>
                             </div>`;
-                        }).join('')}
+            }).join('')}
                     </div>` : '<div></div>'}
 
                     <!-- Clone URLs -->
@@ -1832,7 +1942,7 @@ npm start</pre>
                         <div style="display: flex; gap: 8px; padding: 4px 0; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <code style="color: var(--accent-blue); flex-shrink: 0;">${c.sha}</code>
                             <span style="flex: 1; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.message}</span>
-                            <span style="color: var(--text-secondary); opacity: 0.7; flex-shrink: 0;">${new Date(c.date).toLocaleDateString('tr-TR', {day: '2-digit', month: 'short'})}</span>
+                            <span style="color: var(--text-secondary); opacity: 0.7; flex-shrink: 0;">${new Date(c.date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })}</span>
                         </div>
                     `).join('')}
                 </div>` : ''}
@@ -2197,6 +2307,153 @@ npm start</pre>
                 document.getElementById('status').innerText = `Showing ${filteredRepos.length} forked repos - Double-click to check for changes`;
             } else {
                 showToast('No forked repos found!', 'info');
+            }
+        }
+
+        // ========== REPO INSPECTOR (EXTERNAL REPO ANALYZER) ==========
+        let currentAnalysis = null;
+
+        function openRepoAnalyzerModal() {
+            document.getElementById('repoAnalyzerModal').style.display = 'flex';
+            document.getElementById('repoAnalyzerUrl').focus();
+        }
+
+        async function analyzeExternalRepo() {
+            const urlInput = document.getElementById('repoAnalyzerUrl');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showToast('Please enter a GitHub repository URL', 'warning');
+                return;
+            }
+
+            if (!url.includes('github.com/')) {
+                showToast('Please enter a valid GitHub URL', 'error');
+                return;
+            }
+
+            const token = await window.api.getToken();
+            const routerKey = await window.api.getRouterKey();
+
+            if (!token) {
+                showToast('GitHub Token required. Go to Settings.', 'error');
+                return;
+            }
+
+            if (!routerKey) {
+                showToast('OpenRouter API Key required for AI analysis. Go to Settings.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnAnalyzeRepo');
+            const content = document.getElementById('repoAnalyzerContent');
+            const actions = document.getElementById('repoAnalyzerActions');
+
+            btn.disabled = true;
+            btn.innerText = 'Analyzing...';
+            actions.style.display = 'none';
+
+            content.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 32px; margin-bottom: 15px;" class="spin">⏳</div>
+                    <p style="margin: 0;">Analyzing repository structure...</p>
+                    <p style="margin: 10px 0 0 0; font-size: 11px; opacity: 0.7;">This may take a moment. AI is examining files, dependencies, and architecture.</p>
+                </div>
+            `;
+
+            try {
+                const result = await window.api.analyzeExternalRepo({ token, routerKey, repoUrl: url });
+
+                if (result.success) {
+                    currentAnalysis = result.data;
+
+                    // Render markdown content with syntax highlighting
+                    const htmlContent = renderMarkdown(result.data.analysis);
+
+                    content.innerHTML = `
+                        <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                            <h4 style="margin: 0 0 5px 0; color: var(--text-primary);">${result.data.repoFullName}</h4>
+                            <a href="#" onclick="window.api.openExternal('${result.data.repoUrl}'); return false;"
+                               style="font-size: 12px; color: var(--accent-blue); text-decoration: none;">${result.data.repoUrl}</a>
+                        </div>
+                        <div class="markdown-content" style="font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+                            ${htmlContent}
+                        </div>
+                    `;
+
+                    actions.style.display = 'block';
+                    showToast('Repository analysis complete!', 'success');
+                } else {
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px; color: var(--danger);">
+                            <div style="font-size: 32px; margin-bottom: 15px;">❌</div>
+                            <p style="margin: 0;">Analysis failed</p>
+                            <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">${result.error}</p>
+                        </div>
+                    `;
+                    showToast('Analysis failed: ' + result.error, 'error');
+                }
+            } catch (e) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--danger);">
+                        <div style="font-size: 32px; margin-bottom: 15px;">❌</div>
+                        <p style="margin: 0;">Error occurred</p>
+                        <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">${e.message}</p>
+                    </div>
+                `;
+                showToast('Error: ' + e.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerText = 'Analyze';
+        }
+
+        // Simple markdown to HTML renderer
+        function renderMarkdown(md) {
+            if (!md) return '';
+            return md
+                // Headers
+                .replace(/^### (.*$)/gim, '<h5 style="color: var(--accent-blue); margin: 20px 0 10px 0;">$1</h5>')
+                .replace(/^## (.*$)/gim, '<h4 style="color: var(--accent-green); margin: 25px 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">$1</h4>')
+                .replace(/^# (.*$)/gim, '<h3 style="color: var(--text-primary); margin: 0 0 15px 0;">$1</h3>')
+                // Bold & Italic
+                .replace(/\*\*\*(.*?)\*\*\*/gim, '<strong><em>$1</em></strong>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong style="color: var(--text-primary);">$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                // Code blocks
+                .replace(/```(\w+)?\n([\s\S]*?)```/gim, '<pre style="background: var(--bg-input); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin: 10px 0;"><code>$2</code></pre>')
+                // Inline code
+                .replace(/`([^`]+)`/gim, '<code style="background: var(--bg-input); padding: 2px 6px; border-radius: 3px; font-size: 11px;">$1</code>')
+                // Lists
+                .replace(/^\- (.*$)/gim, '<li style="margin: 4px 0; margin-left: 20px;">$1</li>')
+                .replace(/^\* (.*$)/gim, '<li style="margin: 4px 0; margin-left: 20px;">$1</li>')
+                .replace(/^\d+\. (.*$)/gim, '<li style="margin: 4px 0; margin-left: 20px;">$1</li>')
+                // Line breaks
+                .replace(/\n\n/gim, '</p><p style="margin: 10px 0;">')
+                .replace(/\n/gim, '<br>');
+        }
+
+        function copyAnalysis() {
+            if (currentAnalysis && currentAnalysis.analysis) {
+                navigator.clipboard.writeText(currentAnalysis.analysis);
+                showToast('Analysis copied to clipboard!', 'success');
+            }
+        }
+
+        function downloadAnalysis() {
+            if (currentAnalysis && currentAnalysis.analysis) {
+                const filename = `${currentAnalysis.repoName}-analysis.md`;
+                const content = `# Project Analysis: ${currentAnalysis.repoFullName}\n\n> Source: ${currentAnalysis.repoUrl}\n> Generated: ${new Date().toISOString()}\n\n---\n\n${currentAnalysis.analysis}`;
+
+                const blob = new Blob([content], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                showToast(`Downloaded ${filename}`, 'success');
             }
         }
     </script>

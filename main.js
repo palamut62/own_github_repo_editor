@@ -1024,3 +1024,198 @@ ipcMain.handle('checkForkChanges', async (event, { token, fullName }) => {
         return { success: false, error: e.message };
     }
 });
+
+// ========== REPO ANALYZER FEATURE ==========
+
+// Parse GitHub URL to get owner and repo
+function parseGitHubUrl(url) {
+    const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (match) {
+        return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
+    }
+    return null;
+}
+
+// Get repository tree (file structure)
+async function getRepoTree(token, owner, repo) {
+    try {
+        // Get default branch first
+        const repoData = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+        const defaultBranch = repoData.default_branch;
+
+        // Get tree recursively
+        const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`, 'GET', token);
+        return tree.tree || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// Get file content from repo
+async function getFileContent(token, owner, repo, path) {
+    try {
+        const data = await githubRequest(`/repos/${owner}/${repo}/contents/${path}`, 'GET', token);
+        if (data && data.content) {
+            return Buffer.from(data.content, 'base64').toString('utf-8');
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// AI Analysis Request
+function openRouterAnalysisRequest(apiKey, analysisData) {
+    return new Promise((resolve, reject) => {
+        const postData = JSON.stringify({
+            model: "moonshotai/kimi-k2.5",
+            messages: [
+                {
+                    "role": "system",
+                    "content": `You are an expert software architect and code analyst. Analyze the given repository data and create a comprehensive project analysis document in Markdown format.
+
+The document should include:
+1. **Overview** - What the project does, its purpose
+2. **Tech Stack** - Technologies, frameworks, languages used
+3. **Project Structure** - Key directories and their purposes
+4. **Dependencies** - Main dependencies and what they're used for
+5. **Architecture** - How the project is structured, design patterns
+6. **Key Features** - Main features and how they're implemented
+7. **How to Build Similar** - Step-by-step guide to create a similar project
+8. **Notes** - Important observations, best practices used
+
+Write in a clear, educational tone. Be thorough but concise. Output ONLY the markdown content.`
+                },
+                {
+                    "role": "user",
+                    "content": `Analyze this repository:\n\n${JSON.stringify(analysisData, null, 2)}`
+                }
+            ]
+        });
+
+        const req = https.request({
+            hostname: 'openrouter.ai',
+            path: '/api/v1/chat/completions',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                if (res.statusCode === 200) {
+                    try {
+                        const json = JSON.parse(data);
+                        resolve(json.choices[0].message.content.trim());
+                    } catch (e) {
+                        resolve(null);
+                    }
+                } else {
+                    console.error('OpenRouter Error:', data);
+                    resolve(null);
+                }
+            });
+        });
+
+        req.on('error', (e) => resolve(null));
+        req.write(postData);
+        req.end();
+    });
+}
+
+// Main Repo Analyzer Handler
+ipcMain.handle('analyzeExternalRepo', async (event, { token, routerKey, repoUrl }) => {
+    try {
+        // Parse URL
+        const parsed = parseGitHubUrl(repoUrl);
+        if (!parsed) {
+            return { success: false, error: 'Invalid GitHub URL' };
+        }
+
+        const { owner, repo } = parsed;
+
+        // Get repo info
+        const repoData = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+
+        // Get file tree
+        const tree = await getRepoTree(token, owner, repo);
+
+        // Build file structure string
+        const fileStructure = tree
+            .filter(f => f.type === 'blob')
+            .map(f => f.path)
+            .slice(0, 100) // Limit to 100 files
+            .join('\n');
+
+        // Get important files
+        const importantFiles = ['package.json', 'requirements.txt', 'Cargo.toml', 'go.mod', 'pom.xml', 'build.gradle', 'composer.json', 'Gemfile', 'setup.py', 'pyproject.toml'];
+        let dependencies = null;
+
+        for (const file of importantFiles) {
+            const content = await getFileContent(token, owner, repo, file);
+            if (content) {
+                dependencies = { file, content: content.substring(0, 3000) };
+                break;
+            }
+        }
+
+        // Get README
+        const readme = await getReadmeContent(token, owner, repo);
+
+        // Get main source files (sample)
+        const sourceExtensions = ['.js', '.ts', '.py', '.go', '.rs', '.java', '.rb', '.php'];
+        const sourceFiles = tree
+            .filter(f => f.type === 'blob' && sourceExtensions.some(ext => f.path.endsWith(ext)))
+            .slice(0, 5);
+
+        let sourceSamples = [];
+        for (const file of sourceFiles) {
+            const content = await getFileContent(token, owner, repo, file.path);
+            if (content) {
+                sourceSamples.push({
+                    path: file.path,
+                    content: content.substring(0, 2000) // Limit content
+                });
+            }
+        }
+
+        // Prepare analysis data
+        const analysisData = {
+            name: repoData.name,
+            fullName: repoData.full_name,
+            description: repoData.description,
+            language: repoData.language,
+            languages: await githubRequest(`/repos/${owner}/${repo}/languages`, 'GET', token).catch(() => ({})),
+            stars: repoData.stargazers_count,
+            forks: repoData.forks_count,
+            topics: repoData.topics || [],
+            fileStructure: fileStructure,
+            dependencies: dependencies,
+            readme: readme ? readme.substring(0, 4000) : null,
+            sourceSamples: sourceSamples
+        };
+
+        // Call AI
+        const analysis = await openRouterAnalysisRequest(routerKey, analysisData);
+
+        if (!analysis) {
+            return { success: false, error: 'AI analysis failed. Please try again.' };
+        }
+
+        return {
+            success: true,
+            data: {
+                repoName: repoData.name,
+                repoFullName: repoData.full_name,
+                repoUrl: repoData.html_url,
+                analysis: analysis
+            }
+        };
+
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});

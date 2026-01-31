@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld('api', {
     analyzeAllRepos: (data) => ipcRenderer.invoke('analyzeAllRepos', data),
     checkForkChanges: (data) => ipcRenderer.invoke('checkForkChanges', data),
 
+    // External Repo Analyzer
+    analyzeExternalRepo: (data) => ipcRenderer.invoke('analyzeExternalRepo', data),
+
     // Window Controls
     minimize: () => ipcRenderer.send('app:minimize'),
     maximize: () => ipcRenderer.send('app:maximize'),
