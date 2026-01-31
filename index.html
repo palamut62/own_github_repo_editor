@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Repo Temizleyici</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Giriş Alanı */
+        .auth-box {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            border-radius: 4px;
+        }
+
+        /* Butonlar */
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-load {
+            background: #238636;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #da3633;
+            color: white;
+            margin-top: 15px;
+            width: 100%;
+            font-size: 1.1em;
+        }
+
+        /* İstatistikler */
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .stat-item {
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+
+        /* Repo Listesi */
+        .repo-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .repo-item {
+            background: #161b22;
+            padding: 12px;
+            border: 1px solid #30363d;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.1s;
+        }
+
+        .repo-item:hover {
+            transform: translateX(2px);
+        }
+
+        /* --- RENK AYIRIMI (EN ÖNEMLİ KISIM) --- */
+
+        /* Kaynak (Sizin Projeleriniz) - YEŞİL */
+        .repo-item.source {
+            border-left: 5px solid #238636;
+            /* Yeşil Çizgi */
+        }
+
+        /* Fork (Kopyalanmış) - MOR */
+        .repo-item.fork {
+            border-left: 5px solid #a371f7;
+            /* Mor Çizgi */
+            background: #1c1a26;
+            /* Hafif morumsu arka plan */
+        }
+
+        /* İçerik Düzeni */
+        .repo-content {
+            flex: 1;
+            margin-left: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .repo-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #58a6ff;
+        }
+
+        .repo-meta {
+            font-size: 0.8em;
+            color: #8b949e;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Etiketler (Badge) */
+        .badge {
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-source {
+            background: #238636;
+            color: white;
+        }
+
+        /* Yeşil Etiket */
+        .badge-fork {
+            background: #6e40c9;
+            color: white;
+        }
+
+        /* Mor Etiket */
+
+        /* Checkbox */
+        input[type="checkbox"] {
+            transform: scale(1.5);
+            cursor: pointer;
+            accent-color: #da3633;
+        }
+
+        /* Sayfalama Butonları */
+        #pagination button {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 5px 12px;
+            font-size: 0.9em;
+        }
+
+        #pagination button:hover:not(:disabled) {
+            background: #30363d;
+            border-color: #8b949e;
+        }
+
+        #pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar for Modal Content */
+        #modalContent::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #modalContent::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        /* Filtre Butonları */
+        .filter-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover {
+            background: #30363d;
+        }
+
+        .filter-btn.active {
+            background: #1f6feb;
+            color: white;
+            border-color: #1f6feb;
+        }
+
+        /* Tablo Stilleri (Rename Modal) */
+        .rename-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            color: #c9d1d9;
+        }
+
+        .rename-table th,
+        .rename-table td {
+            border: 1px solid #30363d;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .rename-table th {
+            background: #161b22;
+        }
+
+        .rename-input {
+            width: 95%;
+            padding: 5px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            border-radius: 4px;
+        }
+
+        .btn-ai {
+            background: #8957e5;
+            /* Purple for AI */
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            margin: 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .btn-ai:hover {
+            background: #9e6ceb;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+
+        /* Status Animasyonu */
+        @keyframes colorCycle {
+            0% {
+                color: #e3b341;
+                transform: scale(1);
+            }
+
+            50% {
+                color: #ff7b72;
+                transform: scale(1.02);
+            }
+
+            100% {
+                color: #e3b341;
+                transform: scale(1);
+            }
+        }
+
+        .status-loading {
+            animation: colorCycle 1.5s infinite ease-in-out;
+            font-weight: bold;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- ... existing HTML ... -->
+        <h2 style="border-bottom: 1px solid #30363d; padding-bottom: 10px;">GitHub Temizleyici</h2>
+
+        <div class="auth-box" style="justify-content: space-between; align-items: center;">
+            <div style="font-weight: bold; color: #8b949e;">GitHub Repo Yöneticisi</div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="openSettings()" style="background: #30363d; color: c9d1d9;">⚙️ Ayarlar</button>
+                <button class="btn-load" onclick="loadRepos()">Repoları Getir</button>
+            </div>
+        </div>
+
+        <div id="status" style="color: #e3b341; margin-bottom: 10px; min-height: 20px;"></div>
+
+
+
+        <div id="statsBar" class="stats" style="display:none;">
+            <div class="stat-item">Toplam: <span id="totalCount">0</span></div>
+            <div class="stat-item" style="color: #3fb950;">Kaynak: <span id="sourceCount">0</span></div>
+            <div class="stat-item" style="color: #a371f7;">Fork: <span id="forkCount">0</span></div>
+        </div>
+
+        <!-- Filtreleme Butonları -->
+        <div id="filterButtons" style="display:none; gap: 10px; margin-bottom: 15px;">
+            <button onclick="applyFilter('all')" id="btnFilterAll" class="filter-btn active">Tümü</button>
+            <button onclick="applyFilter('source')" id="btnFilterSource" class="filter-btn">Kaynak</button>
+            <button onclick="applyFilter('fork')" id="btnFilterFork" class="filter-btn">Fork</button>
+        </div>
+
+        <!-- Araç Çubuğu (Sıralama ve Sayfa Boyutu) -->
+        <div id="toolbar" style="display:none; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <select id="sortSelect" onchange="changeSort()"
+                style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
+                <option value="newest">En Yeni Güncelleme</option>
+                <option value="oldest">En Eski Güncelleme</option>
+            </select>
+
+            <select id="pageSizeSelect" onchange="changePageSize()"
+                style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
+                <option value="10">10 Adet / Sayfa</option>
+                <option value="20">20 Adet / Sayfa</option>
+                <option value="50">50 Adet / Sayfa</option>
+            </select>
+        </div>
+
+        <!-- Üst Sayfalama -->
+        <div id="paginationTop" style="display:none; justify-content: flex-end; gap: 5px; margin-bottom: 10px;">
+            <button onclick="changePage(-1)" class="prevBtn">« Önceki</button>
+            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Sayfa 1 / 1</span>
+            <button onclick="changePage(1)" class="nextBtn">Sonraki »</button>
+        </div>
+
+        <!-- Kontrol Paneli (Sil ve Seç) -->
+        <div id="controlPanel"
+            style="display:none; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                <label for="selectAll" style="cursor: pointer; user-select: none;">Tümünü Seç (Bu Sayfa)</label>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-ai" onclick="startAIRename()">🤖 AI ile İsimlendir</button>
+                <button id="deleteBtn" class="btn-delete" onclick="deleteSelected()"
+                    style="margin: 0; padding: 8px 16px; font-size: 0.9em; width: auto;">SEÇİLENLERİ SİL</button>
+            </div>
+        </div>
+
+        <ul id="repoList" class="repo-list"></ul>
+
+        <!-- Alt Sayfalama -->
+        <div id="paginationBottom" style="display:none; justify-content: center; gap: 5px; margin-top: 20px;">
+            <button onclick="changePage(-1)" class="prevBtn">« Önceki</button>
+            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Sayfa 1 / 1</span>
+            <button onclick="changePage(1)" class="nextBtn">Sonraki »</button>
+        </div>
+    </div>
+
+    <!-- Ayarlar Modalı -->
+    <div id="settingsModal"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1002;">
+        <div
+            style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; width: 90%;">
+            <h3 style="margin-top: 0; color: #c9d1d9;">⚙️ Ayarlar</h3>
+
+            <label style="display:block; margin-bottom:5px;">GitHub Token:</label>
+            <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
+
+            <label style="display:block; margin-bottom:5px; margin-top:10px;">OpenRouter API Key:</label>
+            <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
+
+            <div style="text-align: right; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="document.getElementById('settingsModal').style.display='none'"
+                    style="background: #30363d; color: white;">İptal</button>
+                <button onclick="saveSettings()" style="background: #238636; color: white;">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Özel Alert Modalı -->
+    <div id="customModal"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            <h3 id="modalTitle" style="margin-top: 0; color: #58a6ff;">Başlık</h3>
+            <div id="modalContent"
+                style="margin-bottom: 20px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">İçerik</div>
+            <div style="text-align: right;">
+                <button onclick="closeModal()" style="background: #238636; color: white;">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modalı (Geniş) -->
+    <div id="renameModal"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1001;">
+        <div
+            style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 900px; width: 95%; height: 80%; display: flex; flex-direction: column;">
+            <h3 style="margin-top: 0; color: #8957e5;">🤖 AI Önerileri</h3>
+            <div style="margin-bottom: 10px; color: #8b949e; font-size: 0.9em;">
+                ⚠️ İsimleri değiştirmek <b>Remote URL</b>'leri bozabilir. Yerel projelerinizde `git remote set-url`
+                yapmanız gerekebilir.
+            </div>
+            <div style="flex: 1; overflow-y: auto; margin-bottom: 20px; border: 1px solid #30363d; border-radius: 6px;">
+                <table class="rename-table">
+                    <thead>
+                        <tr>
+                            <th>Mevcut İsim</th>
+                            <th>AI Önerisi (Düzenlenebilir)</th>
+                            <th style="width: 100px;">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="renameTableBody"></tbody>
+                </table>
+            </div>
+            <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                <button onclick="document.getElementById('renameModal').style.display='none'"
+                    style="background: #30363d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">İptal</button>
+                <button id="btnExecuteRename" onclick="executeRenames()"
+                    style="background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Tümünü
+                    Onayla ve Değiştir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRepos = [];      // Tüm veriler
+        let filteredRepos = []; // Filtrelenmiş veri
+        let currentFilter = 'all';
+        let currentSort = 'newest';
+        let currentPage = 1;
+        let itemsPerPage = 10;
+
+        let renameProposals = [];
+
+        // Sayfa yüklendiğinde Token'ı getir
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Dropdown defaults
+            document.getElementById('sortSelect').value = currentSort;
+            document.getElementById('pageSizeSelect').value = itemsPerPage;
+        });
+
+        async function openSettings() {
+            const savedToken = await window.api.getToken();
+            const savedRouter = await window.api.getRouterKey();
+
+            document.getElementById('settingsToken').value = savedToken || '';
+            document.getElementById('settingsRouterKey').value = savedRouter || '';
+
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        async function saveSettings() {
+            const token = document.getElementById('settingsToken').value;
+            const routerKey = document.getElementById('settingsRouterKey').value;
+
+            await window.api.saveToken(token);
+            await window.api.saveRouterKey(routerKey);
+
+            document.getElementById('settingsModal').style.display = 'none';
+            alert('Ayarlar kaydedildi!');
+        }
+
+        async function loadRepos() {
+            const token = await window.api.getToken();
+
+            if (!token) {
+                showModal('Uyarı', 'Lütfen ayarlardan GitHub Token girin!');
+                openSettings(); // Kolaylık olsun diye ayarları aç
+                return;
+            }
+
+            document.getElementById('status').innerText = 'Veriler GitHub\'dan çekiliyor...';
+            resetUI();
+
+            // Electron API çağrısı
+            const result = await window.api.getRepos(token);
+
+            if (result.success) {
+                allRepos = result.data;
+
+                // UI Göster
+                document.getElementById('statsBar').style.display = 'flex';
+                document.getElementById('filterButtons').style.display = 'flex';
+                document.getElementById('toolbar').style.display = 'flex';
+
+                applyFilter('all'); // Varsayılan: Tümü
+                updateStats();
+                document.getElementById('status').innerText = '';
+            } else {
+                document.getElementById('status').innerText = 'Hata: ' + result.error;
+                showModal('Hata', 'Veri çekilemedi: ' + result.error);
+            }
+
+        }
+
+        function resetUI() {
+            document.getElementById('repoList').innerHTML = '';
+            document.getElementById('statsBar').style.display = 'none';
+            document.getElementById('filterButtons').style.display = 'none'; // Butonları gizle
+            document.getElementById('toolbar').style.display = 'none';
+            document.getElementById('controlPanel').style.display = 'none';
+            document.getElementById('paginationTop').style.display = 'none';
+            document.getElementById('paginationBottom').style.display = 'none';
+        }
+
+        // --- YENİ: Sorting Logic ---
+        function changeSort() {
+            currentSort = document.getElementById('sortSelect').value;
+            sortRepos();
+            currentPage = 1;
+            renderPage();
+        }
+
+        function sortRepos() {
+            filteredRepos.sort((a, b) => {
+                const dateA = new Date(a.updated_at);
+                const dateB = new Date(b.updated_at);
+                return currentSort === 'newest' ? dateB - dateA : dateA - dateB;
+            });
+        }
+
+        // --- YENİ: Page Size Logic ---
+        function changePageSize() {
+            itemsPerPage = parseInt(document.getElementById('pageSizeSelect').value);
+            currentPage = 1;
+            renderPage();
+        }
+
+        function applyFilter(type) {
+            currentFilter = type;
+            currentPage = 1; // Filtre değişince başa dön
+
+            // Buton stillerini güncelle
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (type === 'all') document.getElementById('btnFilterAll').classList.add('active');
+            if (type === 'source') document.getElementById('btnFilterSource').classList.add('active');
+            if (type === 'fork') document.getElementById('btnFilterFork').classList.add('active');
+
+            // Filtreleme mantığı
+            if (type === 'all') {
+                filteredRepos = [...allRepos];
+            } else if (type === 'source') {
+                filteredRepos = allRepos.filter(r => !r.fork);
+            } else if (type === 'fork') {
+                filteredRepos = allRepos.filter(r => r.fork);
+            }
+
+            sortRepos(); // Filtreden sonra sırala
+            renderPage();
+        }
+
+        function renderPage() {
+            const list = document.getElementById('repoList');
+            list.innerHTML = '';
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageRepos = filteredRepos.slice(start, end);
+
+            if (pageRepos.length === 0) {
+                list.innerHTML = '<li style="text-align:center; padding:20px; color:#8b949e;">Kriterlere uygun repo bulunamadı.</li>';
+            } else {
+                pageRepos.forEach(repo => {
+                    const li = document.createElement('li');
+                    const itemClass = repo.fork ? 'fork' : 'source';
+                    const badgeClass = repo.fork ? 'badge-fork' : 'badge-source';
+                    const badgeText = repo.fork ? 'FORK' : 'KAYNAK';
+
+                    li.className = `repo-item ${itemClass}`;
+                    li.innerHTML = `
+                    <input type="checkbox" class="repo-check" value="${repo.full_name}">
+                    <div class="repo-content">
+                        <div>
+                            <span class="${badgeClass} badge">${badgeText}</span>
+                            <span class="repo-name">${repo.name}</span>
+                            <div style="font-size: 0.8em; color: #8b949e; margin-top: 4px;">
+                                ${repo.description ? repo.description.substring(0, 60) + '...' : 'Açıklama yok'}
+                            </div>
+                        </div>
+                        <div class="repo-meta">
+                            <span>⭐ ${repo.stargazers_count}</span>
+                            <span>📅 ${new Date(repo.updated_at).toLocaleDateString('tr-TR')}</span>
+                        </div>
+                    </div>
+                `;
+                    list.appendChild(li);
+                });
+            }
+
+            // Kontrolleri güncelle
+            document.getElementById('controlPanel').style.display = 'flex';
+            document.getElementById('selectAll').checked = false;
+            updateDeleteButton();
+            renderPagination();
+
+            // Checkbox olaylarını dinle
+            document.querySelectorAll('.repo-check').forEach(cb => {
+                cb.addEventListener('change', updateDeleteButton);
+            });
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredRepos.length / itemsPerPage);
+
+            // Hem üst hem alt elemanları yönet
+            const paginationElements = [
+                document.getElementById('paginationTop'),
+                document.getElementById('paginationBottom')
+            ];
+
+            if (totalPages <= 1) {
+                paginationElements.forEach(el => el.style.display = 'none');
+                return;
+            }
+
+            // Tüm 'pageInfo' class'lı elementleri güncelle (hem üst hem alt)
+            const pageInfoSpans = document.querySelectorAll('.pageInfo');
+            pageInfoSpans.forEach(el => el.innerText = `Sayfa ${currentPage} / ${totalPages}`);
+
+            // Butonları bul ve güncelle
+            const prevBtns = document.querySelectorAll('.prevBtn');
+            const nextBtns = document.querySelectorAll('.nextBtn');
+
+            prevBtns.forEach(btn => {
+                btn.disabled = currentPage === 1;
+                btn.style.opacity = currentPage === 1 ? '0.5' : '1';
+            });
+
+            nextBtns.forEach(btn => {
+                btn.disabled = currentPage === totalPages;
+                btn.style.opacity = currentPage === totalPages ? '0.5' : '1';
+            });
+
+            // Görünür yap
+            paginationElements.forEach(el => el.style.display = 'flex');
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderPage();
+        }
+
+        function updateStats() {
+            const forkCount = allRepos.filter(r => r.fork).length;
+            const sourceCount = allRepos.length - forkCount;
+
+            document.getElementById('totalCount').innerText = allRepos.length;
+            document.getElementById('sourceCount').innerText = sourceCount;
+            document.getElementById('forkCount').innerText = forkCount;
+            document.getElementById('statsBar').style.display = 'flex';
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.repo-check').forEach(cb => {
+                cb.checked = selectAll;
+            });
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const checkboxes = document.querySelectorAll('.repo-check:checked');
+            const count = checkboxes.length;
+            const btn = document.getElementById('deleteBtn');
+
+            if (count > 0) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = `SEÇİLENLERİ SİL (${count})`;
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerText = 'SEÇİLENLERİ SİL';
+            }
+        }
+
+        async function deleteSelected() {
+            const checkboxes = document.querySelectorAll('.repo-check:checked');
+            const reposToDelete = Array.from(checkboxes).map(cb => cb.value);
+            const token = await window.api.getToken();
+
+            if (reposToDelete.length === 0) return;
+
+            // Onay İste
+            const confirmed = await window.api.confirmDelete(reposToDelete.length);
+            if (!confirmed) return;
+
+            const statusEl = document.getElementById('status');
+            statusEl.innerText = '⚠️ Silme işlemi yapılıyor, lütfen bekleyin...';
+            statusEl.className = 'status-loading';
+
+            // API'ye gönder
+            const results = await window.api.deleteRepos({ token, repos: reposToDelete });
+
+            statusEl.className = '';
+            statusEl.innerText = '';
+
+            // Sonucu Bildir
+            const successResults = results.filter(r => r.status === 'Silindi');
+            const errorResults = results.filter(r => r.status !== 'Silindi');
+
+            let message = `✅ Başarılı: ${successResults.length}\n❌ Hatalı: ${errorResults.length}`;
+
+            if (errorResults.length > 0) {
+                message += '\n\n🔍 Hata Detayları:\n' + errorResults.map(r => `- ${r.name}: ${r.status}`).join('\n');
+            }
+
+            showModal(
+                errorResults.length > 0 ? 'İşlem Tamamlandı (Bazı Hatalar Var)' : 'İşlem Başarılı!',
+                message
+            );
+
+            // Listeyi Yenile (Silinenleri listeden çıkarabiliriz ama en kolayı yeniden çekmek)
+            loadRepos();
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalContent').innerText = content;
+            document.getElementById('customModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = 'none';
+        }
+
+        document.getElementById('customModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // --- YENİ: AI Rename Logic ---
+
+        async function startAIRename() {
+            const checkboxes = document.querySelectorAll('.repo-check:checked');
+            const repos = Array.from(checkboxes).map(cb => cb.value);
+
+            const token = await window.api.getToken();
+            const routerKey = await window.api.getRouterKey();
+
+            if (repos.length === 0) return showModal('Uyarı', 'Lütfen en az bir repo seçin.');
+            if (!routerKey) {
+                showModal('Uyarı', 'Lütfen ayarlardan OpenRouter API Key girin.');
+                openSettings();
+                return;
+            }
+
+            const statusEl = document.getElementById('status');
+            statusEl.innerText = '🤖 AI Analizi yapılıyor, lütfen bekleyin...';
+            statusEl.className = 'status-loading';
+
+            // Çağır
+            const results = await window.api.analyzeReposAI({ token, routerKey, repos });
+
+            statusEl.className = '';
+            statusEl.innerText = '';
+
+            renameProposals = results;
+            renderRenameTable();
+            document.getElementById('renameModal').style.display = 'flex';
+        }
+
+        function renderRenameTable() {
+            const tbody = document.getElementById('renameTableBody');
+            tbody.innerHTML = '';
+
+            renameProposals.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.currentName} <br><small style="color:#8b949e">${item.original}</small></td>
+                    <td><input type="text" class="rename-input" value="${item.proposed}" id="proposal-${index}"></td>
+                    <td id="status-${index}">Wait</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function executeRenames() {
+            const btn = document.getElementById('btnExecuteRename');
+            const originalText = btn.innerText;
+
+            // Yükleniyor durumu
+            btn.disabled = true;
+            btn.innerText = 'İşleniyor... ⏳';
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'wait';
+
+            const token = await window.api.getToken();
+
+            // Topla verileri
+            const renamesToExecute = renameProposals.map((item, index) => {
+                const newName = document.getElementById(`proposal-${index}`).value;
+                return {
+                    owner: item.original.split('/')[0],
+                    repo: item.currentName,
+                    newName: newName
+                };
+            });
+
+            const results = await window.api.executeRenames({ token, renames: renamesToExecute });
+
+            // Tabloyu güncelle
+            results.forEach((res, index) => {
+                const cell = document.getElementById(`status-${index}`);
+                if (res.status === 'Success') {
+                    cell.innerHTML = '✅ OK';
+                    cell.style.color = '#3fb950';
+                } else {
+                    cell.innerHTML = '❌ Err';
+                    cell.title = res.status;
+                    cell.style.color = '#f85149';
+                }
+            });
+
+            setTimeout(() => {
+                alert('İşlem tamamlandı.');
+                document.getElementById('renameModal').style.display = 'none';
+
+                // Butonu eski haline getir
+                btn.disabled = false;
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+
+                loadRepos();
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>
