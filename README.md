@@ -2,6 +2,8 @@
 
 A powerful Electron desktop application designed to help you manage, clean up, and intelligently rename your GitHub repositories using AI.
 
+![App Screenshot](screenshoot.png)
+
 ## 🚀 Features
 
 *   **Repository Listing:** View all your GitHub repositories (distinguishing between Source and Fork).
