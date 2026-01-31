@@ -343,6 +343,21 @@
             gap: 4px;
         }
 
+        .badge-license {
+            color: var(--accent-blue);
+            opacity: 0.8;
+        }
+
+        .badge-mit {
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .badge-no-license {
+            color: var(--danger);
+            opacity: 0.6;
+        }
+
         .card-check {
             position: absolute;
             top: 20px;
@@ -810,6 +825,14 @@
                         style="background:none; border:none; padding: 6px 10px; cursor: pointer;">
                         grid
                     </button>
+                </div>
+                <div
+                    style="display: flex; align-items: center; gap: 8px; margin-right: 15px; border-right: 1px solid var(--border-color); padding-right: 15px;">
+                    <input type="checkbox" id="selectAll" onclick="toggleSelectAll()"
+                        style="cursor: pointer; transform: scale(1.1);">
+                    <label for="selectAll"
+                        style="font-size: 11px; color: var(--text-secondary); cursor: pointer; user-select: none;">Select
+                        All</label>
                 </div>
                 <button class="btn-primary" onclick="loadRepos()">🔄 Reload</button>
                 <select class="input-dark" id="sortSelect" onchange="changeSort()">
@@ -1451,6 +1474,12 @@
                     card.className = `repo-card ${document.getElementById('selectAll')?.checked ? 'selected' : ''}`; // Simple logic, refinement needed for individual select persistence
                     // Better selection logic: check if repo is in a 'selected' set? For now, standard checkbox.
 
+                    let licenseBadge = '<div class="badge badge-no-license">No License</div>';
+                    if (repo.license) {
+                        const isMit = repo.license.key === 'mit';
+                        licenseBadge = `<div class="badge ${isMit ? 'badge-mit' : 'badge-license'}">📜 ${repo.license.spdx_id}</div>`;
+                    }
+
                     card.innerHTML = `
                         <input type="checkbox" class="card-check" value="${repo.full_name}" onclick="event.stopPropagation()">
                         <div class="card-header">
@@ -1466,17 +1495,22 @@
                             ${repo.description || 'No description provided.'}
                         </div>
                         <div class="card-meta">
-                            <div class="badge-star">⭐ ${repo.stargazers_count}</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div class="badge-star">⭐ ${repo.stargazers_count}</div>
+                                ${licenseBadge}
+                            </div>
                             <div>${new Date(repo.updated_at).toLocaleDateString()}</div>
                         </div>
                     `;
                     // Click card to toggle check
                     card.onclick = (e) => {
-                        if (e.target.type !== 'checkbox') {
-                            const chk = card.querySelector('.card-check');
+                        const chk = card.querySelector('.card-check');
+                        if (e.target !== chk) {
                             chk.checked = !chk.checked;
                         }
-                        // Visual selection state could go here
+
+                        if (chk.checked) card.classList.add('selected');
+                        else card.classList.remove('selected');
                     };
 
                     // Double-click to open detail modal
@@ -1492,6 +1526,20 @@
             // Pagination Info
             document.getElementById('pageInfo').innerText = `Page ${currentPage} / ${maxPage}`;
             document.getElementById('paginationBar').style.display = total > 0 ? 'flex' : 'none';
+        }
+
+        function toggleSelectAll() {
+            const selectAllChk = document.getElementById('selectAll');
+            const checks = document.querySelectorAll('.card-check');
+            checks.forEach(chk => {
+                chk.checked = selectAllChk.checked;
+                // Trigger any visual state if needed
+                const card = chk.closest('.repo-card');
+                if (card) {
+                    if (chk.checked) card.classList.add('selected');
+                    else card.classList.remove('selected');
+                }
+            });
         }
 
         // --- Data Logic ---
