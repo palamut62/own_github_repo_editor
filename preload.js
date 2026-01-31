@@ -18,5 +18,10 @@ contextBridge.exposeInMainWorld('api', {
     getRouterKey: () => ipcRenderer.invoke('getRouterKey'),
     saveRouterKey: (key) => ipcRenderer.invoke('saveRouterKey', key),
     analyzeReposAI: (data) => ipcRenderer.invoke('analyzeReposAI', data),
-    executeRenames: (data) => ipcRenderer.invoke('executeRenames', data)
+    executeRenames: (data) => ipcRenderer.invoke('executeRenames', data),
+
+    // Window Controls
+    minimize: () => ipcRenderer.send('app:minimize'),
+    maximize: () => ipcRenderer.send('app:maximize'),
+    close: () => ipcRenderer.send('app:close')
 });

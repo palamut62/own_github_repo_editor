@@ -8,8 +8,10 @@ let currentUser = null; // To cache user info
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 900,
-        height: 700,
+        width: 1000,
+        height: 750,
+        frame: false, // Custom Title Bar
+        titleBarStyle: 'hidden',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -320,4 +322,22 @@ ipcMain.handle('executeRenames', async (event, { token, renames }) => {
         }
     }
     return results;
+});
+
+
+// Window Controls
+ipcMain.on('app:minimize', () => {
+    mainWindow.minimize();
+});
+
+ipcMain.on('app:maximize', () => {
+    if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+    } else {
+        mainWindow.maximize();
+    }
+});
+
+ipcMain.on('app:close', () => {
+    mainWindow.close();
 });

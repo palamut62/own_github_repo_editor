@@ -327,93 +327,286 @@
             font-weight: bold;
             display: inline-block;
         }
+
+        /* --- Custom Title Bar --- */
+        .title-bar {
+            -webkit-app-region: drag;
+            height: 30px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Center Title */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 5000;
+            color: #8b949e;
+            font-size: 13px;
+        }
+
+        .title-bar-controls {
+            position: absolute;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+        }
+
+        .control-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+            -webkit-app-region: no-drag;
+        }
+
+        .btn-close {
+            background: #ff5f56;
+        }
+
+        .btn-minimize {
+            background: #ffbd2e;
+        }
+
+        .btn-maximize {
+            background: #27c93f;
+        }
+
+
+
+        /* --- Status Bar --- */
+        /* --- Status Bar --- */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: #161b22;
+            /* Matches Title Bar */
+            border-top: 1px solid #30363d;
+            color: #8b949e;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 11px;
+            z-index: 5000;
+            justify-content: space-between;
+        }
+
+        /* Adjust Container for bars */
+        .container {
+            margin-top: 30px;
+            /* Space for Title Bar */
+            margin-bottom: 25px;
+            /* Space for Status Bar */
+            height: calc(100vh - 55px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Prevent body scroll */
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Layout Helpers */
+        .fixed-header {
+            padding: 15px 20px 0 20px;
+            background: #0d1117;
+            border-bottom: 1px solid #30363d;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px;
+        }
+
+        .fixed-footer {
+            padding: 10px 20px 15px 20px;
+            /* Added bottom padding */
+            background: #0d1117;
+            border-top: 1px solid #30363d;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Compact UI Helpers */
+        .btn-secondary {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+
+        .compact-select {
+            padding: 4px;
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .mini-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .mini-btn:hover {
+            background: #30363d;
+        }
+
+        .prevBtn.small,
+        .nextBtn.small {
+            padding: 5px 15px;
+            font-size: 13px;
+        }
     </style>
 </head>
 
-<body>
+<body
+    style="margin: 0; overflow: hidden; background: #0d1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-controls">
+            <button class="control-btn btn-close" onclick="window.api.close()" title="Close"></button>
+            <button class="control-btn btn-minimize" onclick="window.api.minimize()" title="Minimize"></button>
+            <button class="control-btn btn-maximize" onclick="window.api.maximize()" title="Maximize"></button>
+        </div>
+        <span>GitHub Repo Editor</span>
+    </div>
 
     <div class="container">
-        <!-- ... existing HTML ... -->
-        <h2 style="border-bottom: 1px solid #30363d; padding-bottom: 10px;">GitHub Repo Editor</h2>
-
-        <div class="auth-box" style="justify-content: space-between; align-items: center;">
-            <div style="font-weight: bold; color: #8b949e;">GitHub Repo Manager</div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('helpModal').style.display='flex'"
-                    style="background: #21262d; color: #8b949e; border: 1px solid #30363d;">❓ Help</button>
-                <button onclick="openSettings()" style="background: #30363d; color: c9d1d9;">⚙️ Settings</button>
-                <button class="btn-load" onclick="loadRepos()">Load Repos</button>
+        <!-- FIXED HEADER -->
+        <div class="fixed-header">
+            <!-- Row 1: Title & Main Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; font-size: 18px; border: none;">GitHub Repo Editor</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="document.getElementById('helpModal').style.display='flex'" class="btn-secondary">❓
+                        Help</button>
+                    <button onclick="openSettings()" class="btn-secondary">⚙️ Settings</button>
+                    <button class="btn-load" onclick="loadRepos()" style="padding: 6px 12px; font-size: 13px;">Load
+                        Repos</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Dynamic Warning Banner -->
-        <div id="topBanner" class="warning-banner">
-            <span class="warning-icon">⚠️</span>
-            <span id="bannerText">Renaming repositories will change their Remote URLs. Deleting repositories is
-                permanent. Please proceed with caution!</span>
-        </div>
-
-        <div id="status" style="color: #e3b341; margin-bottom: 10px; min-height: 20px;"></div>
-
-
-
-        <div id="statsBar" class="stats" style="display:none;">
-            <div class="stat-item">Total: <span id="totalCount">0</span></div>
-            <div class="stat-item" style="color: #3fb950;">Source: <span id="sourceCount">0</span></div>
-            <div class="stat-item" style="color: #a371f7;">Fork: <span id="forkCount">0</span></div>
-        </div>
-
-        <!-- Filtering Buttons -->
-        <div id="filterButtons" style="display:none; gap: 10px; margin-bottom: 15px;">
-            <button onclick="applyFilter('all')" id="btnFilterAll" class="filter-btn active">All</button>
-            <button onclick="applyFilter('source')" id="btnFilterSource" class="filter-btn">Source</button>
-            <button onclick="applyFilter('fork')" id="btnFilterFork" class="filter-btn">Fork</button>
-        </div>
-
-        <!-- Toolbar (Sort and Page Size) -->
-        <div id="toolbar" style="display:none; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            <select id="sortSelect" onchange="changeSort()"
-                style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
-                <option value="newest">Newest Update</option>
-                <option value="oldest">Oldest Update</option>
-            </select>
-
-            <select id="pageSizeSelect" onchange="changePageSize()"
-                style="padding: 5px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px;">
-                <option value="10">10 Items / Page</option>
-                <option value="20">20 Items / Page</option>
-                <option value="50">50 Items / Page</option>
-            </select>
-        </div>
-
-        <!-- Pagination Top -->
-        <div id="paginationTop" style="display:none; justify-content: flex-end; gap: 5px; margin-bottom: 10px;">
-            <button onclick="changePage(-1)" class="prevBtn">« Previous</button>
-            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Page 1 / 1</span>
-            <button onclick="changePage(1)" class="nextBtn">Next »</button>
-        </div>
-
-        <!-- Control Panel (Delete and Select) -->
-        <div id="controlPanel"
-            style="display:none; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                <label for="selectAll" style="cursor: pointer; user-select: none;">Select All (This Page)</label>
+            <!-- Dynamic Warning Banner -->
+            <div id="topBanner" class="warning-banner" style="margin-bottom: 10px; padding: 8px; font-size: 12px;">
+                <span class="warning-icon">⚠️</span>
+                <span id="bannerText">Renaming/Deleting changes URLs. Proceed with caution!</span>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-ai" onclick="startAIRename()">🤖 AI Smart Rename</button>
-                <button id="deleteBtn" class="btn-delete" onclick="deleteSelected()"
-                    style="margin: 0; padding: 8px 16px; font-size: 0.9em; width: auto;">DELETE SELECTED</button>
+
+            <div id="status" style="color: #e3b341; margin-bottom: 5px; min-height: 15px; font-size: 12px;"></div>
+
+            <!-- Row 2: Stats, Filters, Toolbar Combined -->
+            <div id="controlsRow"
+                style="display:none; align-items: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+
+                <!-- Stats -->
+                <div id="statsBar" class="stats"
+                    style="display:flex; margin: 0; padding: 0; border: none; background: transparent; gap: 10px; font-size: 13px;">
+                    <div class="stat-item" style="padding: 2px 6px;">Total: <span id="totalCount">0</span></div>
+                    <div class="stat-item" style="color: #3fb950; padding: 2px 6px;">Source: <span
+                            id="sourceCount">0</span></div>
+                    <div class="stat-item" style="color: #a371f7; padding: 2px 6px;">Fork: <span id="forkCount">0</span>
+                    </div>
+                </div>
+
+                <div style="width: 1px; height: 20px; background: #30363d;"></div>
+
+                <!-- Filters -->
+                <div id="filterButtons" style="display:flex; gap: 5px;">
+                    <button onclick="applyFilter('all')" id="btnFilterAll" class="filter-btn active"
+                        style="padding: 4px 10px; font-size: 12px;">All</button>
+                    <button onclick="applyFilter('source')" id="btnFilterSource" class="filter-btn"
+                        style="padding: 4px 10px; font-size: 12px;">Source</button>
+                    <button onclick="applyFilter('fork')" id="btnFilterFork" class="filter-btn"
+                        style="padding: 4px 10px; font-size: 12px;">Fork</button>
+                </div>
+
+                <div style="flex:1;"></div>
+
+                <!-- Toolbar -->
+                <div id="toolbar" style="display:flex; gap: 8px;">
+                    <select id="sortSelect" onchange="changeSort()" class="compact-select">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                    </select>
+                    <select id="pageSizeSelect" onchange="changePageSize()" class="compact-select">
+                        <option value="10">10 / Page</option>
+                        <option value="20">20 / Page</option>
+                        <option value="50">50 / Page</option>
+                    </select>
+                </div>
             </div>
+
+            <!-- Row 3: Bulk Actions -->
+            <div id="controlPanel"
+                style="display:none; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #30363d; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                    <label for="selectAll" style="cursor: pointer; user-select: none; font-size: 13px;">Select All
+                        (Page)</label>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <!-- Pagination Top (Optional, kept minimal) -->
+                    <div id="paginationTop" style="display:flex; gap: 5px; margin-right: 15px;">
+                        <button onclick="changePage(-1)" class="mini-btn">«</button>
+                        <button onclick="changePage(1)" class="mini-btn">»</button>
+                    </div>
+
+                    <button class="btn-ai" onclick="startAIRename()" style="font-size: 12px; padding: 6px 12px;">🤖 AI
+                        Rename</button>
+                    <button id="deleteBtn" class="btn-delete" onclick="deleteSelected()"
+                        style="margin: 0; padding: 6px 12px; font-size: 12px; width: auto;">DELETE</button>
+                </div>
+            </div>
+
+        </div> <!-- End Fixed Header -->
+
+        <!-- SCROLLABLE LIST -->
+        <div class="scroll-content">
+            <ul id="repoList" class="repo-list"></ul>
         </div>
 
-        <ul id="repoList" class="repo-list"></ul>
-
-        <!-- Pagination Bottom -->
-        <div id="paginationBottom" style="display:none; justify-content: center; gap: 5px; margin-top: 20px;">
-            <button onclick="changePage(-1)" class="prevBtn">« Previous</button>
-            <span class="pageInfo" style="padding: 8px; color: #8b949e;">Page 1 / 1</span>
-            <button onclick="changePage(1)" class="nextBtn">Next »</button>
+        <!-- FIXED FOOTER -->
+        <div class="fixed-footer" id="paginationBottom"
+            style="display:none; padding-bottom: 15px; margin-bottom: 10px;">
+            <button onclick="changePage(-1)" class="prevBtn small">« Previous</button>
+            <span class="pageInfo" style="font-size: 13px; color: #8b949e;">Page 1 / 1</span>
+            <button onclick="changePage(1)" class="nextBtn small">Next »</button>
         </div>
     </div>
 
@@ -591,9 +784,9 @@
                 allRepos = result.data;
 
                 // UI Show
-                document.getElementById('statsBar').style.display = 'flex';
-                document.getElementById('filterButtons').style.display = 'flex';
-                document.getElementById('toolbar').style.display = 'flex';
+                document.getElementById('controlsRow').style.display = 'flex'; // Compact Row
+                document.getElementById('controlPanel').style.display = 'flex';
+                document.getElementById('paginationBottom').style.display = 'flex';
 
                 applyFilter('all'); // Default: All
                 updateStats();
@@ -607,11 +800,8 @@
 
         function resetUI() {
             document.getElementById('repoList').innerHTML = '';
-            document.getElementById('statsBar').style.display = 'none';
-            document.getElementById('filterButtons').style.display = 'none'; // Butonları gizle
-            document.getElementById('toolbar').style.display = 'none';
+            document.getElementById('controlsRow').style.display = 'none';
             document.getElementById('controlPanel').style.display = 'none';
-            document.getElementById('paginationTop').style.display = 'none';
             document.getElementById('paginationBottom').style.display = 'none';
         }
 
@@ -760,6 +950,11 @@
             document.getElementById('sourceCount').innerText = sourceCount;
             document.getElementById('forkCount').innerText = forkCount;
             document.getElementById('statsBar').style.display = 'flex';
+
+            // Update Lower Status Bar
+            const user = allRepos.length > 0 ? allRepos[0].owner.login : 'Unknown User';
+            document.getElementById('statusBarContent').innerHTML =
+                `User: <b>${user}</b> | Total: ${allRepos.length} | Source: ${sourceCount} | Fork: ${forkCount}`;
         }
 
         function toggleSelectAll() {
@@ -947,6 +1142,13 @@
             }, 1000);
         }
     </script>
+
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span id="statusBarContent">Not connected</span>
+        <span>GitHub Repo Editor v1.0</span>
+    </div>
 </body>
 
 </html>
