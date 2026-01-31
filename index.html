@@ -679,6 +679,17 @@
             color: white;
         }
 
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
         .confirm-btn-ok:hover {
             filter: brightness(1.1);
         }
@@ -758,6 +769,9 @@
                 </div>
                 <div class="nav-item" onclick="showSetupInfo()">
                     <span>📦 Setup / Clone Info</span>
+                </div>
+                <div class="nav-item" onclick="startAICommitFixer()">
+                    <span>✨ AI Commit Fixer</span>
                 </div>
             </div>
 
@@ -960,6 +974,9 @@
                             repository names</li>
                         <li><strong>AI Description:</strong> Generates professional descriptions based on README</li>
                         <li><strong>AI README Creator:</strong> Creates README.md files analyzing repository structure
+                        </li>
+                        <li><strong>AI Commit Fixer:</strong> Suggests improvements for commit messages and can
+                            <strong>rewrite history</strong> to apply them (Single or Bulk)
                         </li>
                     </ul>
                 </div>
@@ -1293,6 +1310,39 @@
                     <button class="btn-primary" onclick="downloadAnalysis()" style="flex: 1;">
                         Download as MD
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Commit Fixer Modal -->
+    <div id="aiCommitModal" class="modal-overlay">
+        <div class="modal-box" style="position: relative; max-width: 900px; padding-top: 36px;">
+            <div onclick="document.getElementById('aiCommitModal').style.display='none'"
+                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 20px;">✨ AI Commit Fixer</h3>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px;">Select Repository:</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="aiCommitRepoSelect" class="input-dark" style="flex: 1;"></select>
+                    <button class="btn-primary" onclick="analyzeCommits()">🔍 Analyze Commits</button>
+                </div>
+            </div>
+
+            <div id="aiCommitActions"
+                style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); text-align: right;">
+                <button class="btn-primary" onclick="applyBulkCommitFix()"
+                    style="background: var(--accent-blue); display: inline-flex; align-items: center; gap: 6px;">
+                    ✨ Apply All Suggestions
+                </button>
+            </div>
+
+            <div id="aiCommitResults"
+                style="display: none; height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--bg-input);">
+                <div style="text-align: center; color: var(--text-secondary); margin-top: 20px;">
+                    Select a repository and click Analyze to see suggestions.
                 </div>
             </div>
         </div>
@@ -2474,6 +2524,171 @@ npm start</pre>
 
             btn.disabled = false;
             btn.innerText = 'Analyze';
+        }
+
+        // AI Commit Fixer
+        function startAICommitFixer() {
+            const modal = document.getElementById('aiCommitModal');
+            const select = document.getElementById('aiCommitRepoSelect');
+
+            // Populate select
+            select.innerHTML = '<option value="">Select a repository...</option>';
+            allRepos.forEach(repo => {
+                const opt = document.createElement('option');
+                opt.value = repo.full_name;
+                opt.innerText = repo.full_name;
+                select.appendChild(opt);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        async function analyzeCommits() {
+            const select = document.getElementById('aiCommitRepoSelect');
+            const repoFullName = select.value;
+            if (!repoFullName) return showToast('Please select a repository.', 'error');
+
+            const resultsDiv = document.getElementById('aiCommitResults');
+            resultsDiv.style.display = 'block';
+            document.getElementById('aiCommitActions').style.display = 'none';
+
+            // Loading Animation
+            resultsDiv.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 32px; margin-bottom: 15px;" class="spin">⏳</div>
+                    <p style="margin: 0;">Analyzing commits...</p>
+                    <p style="margin: 10px 0 0 0; font-size: 11px; opacity: 0.7;">AI is rewriting your commit history...</p>
+                </div>
+            `;
+
+            const token = await window.api.getToken();
+            const routerKey = await window.api.getRouterKey();
+
+            if (!routerKey) {
+                resultsDiv.innerHTML = '<div style="text-align:center; color: var(--danger);">OpenRouter API Key is missing. Please check Settings.</div>';
+                return;
+            }
+
+            const results = await window.api.analyzeCommitsAI(token, routerKey, repoFullName);
+
+            // Store results globally for bulk apply
+            window.currentAIResults = results;
+
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align:center; padding: 20px;">No commits found or analysis failed.</div>';
+                document.getElementById('aiCommitActions').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('aiCommitActions').style.display = 'block';
+            resultsDiv.innerHTML = '';
+            results.forEach(item => {
+                const row = document.createElement('div');
+                row.style.background = 'var(--bg-body)';
+                row.style.padding = '10px';
+                row.style.marginBottom = '8px';
+                row.style.borderRadius = '6px';
+                row.style.border = '1px solid var(--border-color)';
+
+                row.innerHTML = `
+                    <div style="font-size: 11px; opacity: 0.7; margin-bottom: 4px;">SHA: ${item.sha.substring(0, 7)}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="background: rgba(255,0,0,0.05); padding: 8px; border-radius: 4px;">
+                            <div style="font-weight:bold; font-size: 11px; color: var(--danger); margin-bottom:4px;">Original</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">${item.original}</div>
+                        </div>
+                         <div style="background: rgba(0,255,0,0.05); padding: 8px; border-radius: 4px; position:relative;">
+                            <div style="font-weight:bold; font-size: 11px; color: var(--accent-green); margin-bottom:4px;">AI Suggestion</div>
+                            <div style="font-size: 12px; font-weight: 500;">${item.suggestion}</div>
+                            <div style="position:absolute; top: 4px; right: 4px; display:flex; gap:4px;">
+                                <button onclick="navigator.clipboard.writeText('${item.suggestion.replace(/'/g, "\\'")}'); showToast('Copied!')" 
+                                    style="background: var(--bg-input); border: 1px solid var(--border-color); cursor: pointer; border-radius: 4px; font-size: 10px; padding: 2px 6px;">
+                                    Copy
+                                </button>
+                                <button onclick="applyCommitFix('${item.sha}', '${item.suggestion.replace(/'/g, "\\'")}')"
+                                    style="background: var(--accent-blue); color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 10px; padding: 2px 6px;"
+                                    title="DANGER: This will rewrite history!">
+                                    Apply Fix
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultsDiv.appendChild(row);
+            });
+        }
+
+        async function applyCommitFix(sha, newMessage) {
+            const select = document.getElementById('aiCommitRepoSelect');
+            const repoFullName = select.value;
+
+            const confirmed = await showConfirm(
+                `WARNING: This will rewrite Git history for this repository on GitHub!\n\nIt will change the commit message for ${sha.substring(0, 7)} and FORCE PUSH the changes.\n\nAre you sure you want to continue?`,
+                { type: 'danger', title: 'Rewrite History Warning', okText: 'Yes, Rewrite History' }
+            );
+
+            if (!confirmed) return;
+
+            // Show loading toast
+            showToast('Applying fix... This is a complex operation.', 'info');
+
+            const token = await window.api.getToken();
+            const result = await window.api.applyCommitFix(token, repoFullName, sha, newMessage);
+
+            if (result.success) {
+                showToast('Fix applied successfully! Repository history updated.', 'success');
+                // analyzeCommits(); // Refresh list - User requested to close instead
+                document.getElementById('aiCommitModal').style.display = 'none';
+            } else {
+                showToast('Failed to apply fix: ' + result.error, 'error');
+            }
+        }
+
+        async function applyBulkCommitFix() {
+            const select = document.getElementById('aiCommitRepoSelect');
+            const repoFullName = select.value;
+
+            if (!window.currentAIResults || window.currentAIResults.length === 0) {
+                return showToast('No suggestions to apply.', 'warning');
+            }
+
+            const fixes = window.currentAIResults.filter(item => item.suggestion !== 'No suggestion available').map(item => ({
+                sha: item.sha,
+                newMessage: item.suggestion
+            }));
+
+            if (fixes.length === 0) {
+                return showToast('No valid suggestions found.', 'warning');
+            }
+
+            const confirmed = await showConfirm(
+                `WARNING: This will rewrite history for ${fixes.length} commits!\n\nThis is a DESTRUCTIVE operation that will rewrite the commit chain and FORCE PUSH.\n\nAre you sure you want to apply all these fixes?`,
+                { type: 'danger', title: 'Bulk Rewrite History Warning', okText: 'Yes, Apply All Fixes' }
+            );
+
+            if (!confirmed) return;
+
+            showToast(`Applying ${fixes.length} fixes... This may take a while.`, 'info');
+            const btn = document.querySelector('#aiCommitActions button');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Applying Fixes...';
+            }
+
+            const token = await window.api.getToken();
+            const result = await window.api.applyBulkCommitFixes(token, repoFullName, fixes);
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Apply All Suggestions';
+            }
+
+            if (result.success) {
+                showToast('All fixes applied successfully!', 'success');
+                document.getElementById('aiCommitModal').style.display = 'none';
+            } else {
+                showToast('Failed to apply bulk fixes: ' + result.error, 'error');
+            }
         }
 
         // Simple markdown to HTML renderer

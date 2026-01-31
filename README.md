@@ -19,6 +19,11 @@ A powerful Electron desktop application designed to help you manage, clean up, a
 - **AI Smart Rename:** Analyzes README.md content and suggests appropriate repository names
 - **AI Description Generator:** Creates professional descriptions based on README content
 - **AI README Creator:** Generates complete README.md files by analyzing repository structure
+- **AI Commit Fixer:**
+  - Analyzes recent commit messages and suggests professional improvements (Conventional Commits)
+  - **Apply Fix:** Rewrites history to update a single commit message
+  - **Bulk Apply:** Optimally applies all suggestions in one go
+  - *Warning:* These features perform a force push operation
 
 ### Organization Tools
 - **Visibility Control:** Change repositories between Public and Private

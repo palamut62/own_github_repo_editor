@@ -1219,3 +1219,273 @@ ipcMain.handle('analyzeExternalRepo', async (event, { token, routerKey, repoUrl 
         return { success: false, error: e.message };
     }
 });
+
+// 25. AI Commit Fixer Logic
+function openRouterCommitRequest(apiKey, commits) {
+    return new Promise((resolve, reject) => {
+        const commitText = commits.map(c => `SHA: ${c.sha}\nMsg: ${c.message}`).join('\n---\n');
+
+        const postData = JSON.stringify({
+            model: "moonshotai/kimi-k2.5",
+            messages: [
+                {
+                    "role": "system",
+                    "content": "You are an expert developer. Rewrite the following commit messages to follow the Conventional Commits standard (e.g., 'feat: add new feature', 'fix: resolve issue'). Keep them concise and professional. Return a JSON array of objects with 'sha' and 'suggestion' keys. Do NOT output markdown code blocks, just raw JSON."
+                },
+                {
+                    "role": "user",
+                    "content": `Rewrite these commit messages:\n\n${commitText}`
+                }
+            ]
+        });
+
+        const req = https.request({
+            hostname: 'openrouter.ai',
+            path: '/api/v1/chat/completions',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                if (res.statusCode === 200) {
+                    try {
+                        const json = JSON.parse(data);
+                        let content = json.choices[0].message.content.trim();
+                        // Clean up markdown code blocks if AI adds them
+                        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const suggestions = JSON.parse(content);
+                        resolve(suggestions);
+                    } catch (e) {
+                        console.error('AI Parse Error:', e);
+                        resolve([]);
+                    }
+                } else {
+                    resolve([]);
+                }
+            });
+        });
+
+        req.on('error', () => resolve([]));
+        req.write(postData);
+        req.end();
+    });
+}
+
+ipcMain.handle('analyzeCommitsAI', async (event, { token, routerKey, repoFullName }) => {
+    try {
+        const [owner, repo] = repoFullName.split('/');
+        // 1. Get recent commits (last 10)
+        let recentCommits = [];
+        try {
+            const commits = await githubRequest(`/repos/${owner}/${repo}/commits?per_page=10`, 'GET', token);
+            recentCommits = commits.map(c => ({
+                sha: c.sha.substring(0, 7),
+                message: c.commit.message.split('\n')[0] // Only first line
+            }));
+        } catch (e) {
+            return [];
+        }
+
+        if (recentCommits.length === 0) return [];
+
+        // 2. Ask AI to improve them
+        const suggestions = await openRouterCommitRequest(routerKey, recentCommits);
+
+        // 3. Merge results
+        const results = recentCommits.map(c => {
+            const suggestion = suggestions.find(s => s.sha === c.sha || s.sha.startsWith(c.sha));
+            return {
+                sha: c.sha,
+                original: c.message,
+                suggestion: suggestion ? suggestion.suggestion : 'No suggestion available'
+            };
+        });
+
+        return results;
+
+    } catch (e) {
+        return [];
+    }
+});
+
+// 26. APPLY COMMIT FIX (REWRITE HISTORY)
+ipcMain.handle('applyCommitFix', async (event, { token, repoFullName, sha, newMessage }) => {
+    try {
+        const [owner, repo] = repoFullName.split('/');
+
+        // 1. Get the current Branch Head to know where to force push later
+        const defaultBranchData = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+        const defaultBranch = defaultBranchData.default_branch;
+        const refData = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${defaultBranch}`, 'GET', token);
+        // const branchHeadSha = refData.object.sha; // Unused, we use commits array instead
+
+        // 2. We need to find the commit chain from TARGET (sha) to HEAD
+        // Getting all commits is expensive, so we get last 50 and hope target is in there.
+        // If not, we fail safely.
+        const commits = await githubRequest(`/repos/${owner}/${repo}/commits?per_page=50&sha=${defaultBranch}`, 'GET', token);
+
+        // Commits are returned HEAD -> OLDER.
+        // We need to find our target SHA index.
+        const targetIndex = commits.findIndex(c => c.sha.startsWith(sha) || c.sha === sha);
+
+        if (targetIndex === -1) {
+            return { success: false, error: 'Commit not found in recent history (last 50). Cannot rewrite older history safely.' };
+        }
+
+        // 3. Rebuild the chain
+        // We need to iterate from TARGET (oldest) -> HEAD (newest)
+        // commits[targetIndex] is our Target.
+        // commits[0] is HEAD.
+
+        let previousCommitSha = null;
+
+        // Handle the Target Commit first
+        const targetCommit = commits[targetIndex];
+        // const targetParentSha = targetCommit.parents.length > 0 ? targetCommit.parents[0].sha : null; 
+
+        // Create the new Target Commit
+        // POST /repos/:owner/:repo/git/commits
+        const newTargetCommitData = {
+            message: newMessage,
+            tree: targetCommit.commit.tree.sha,
+            parents: targetCommit.parents.map(p => p.sha)
+        };
+
+        const newTargetResponse = await githubRequest(`/repos/${owner}/${repo}/git/commits`, 'POST', token, newTargetCommitData);
+        previousCommitSha = newTargetResponse.sha;
+
+        // Now replay subsequent commits on top of this new one
+        // Loop from targetIndex - 1 (next newer) down to 0 (HEAD)
+        for (let i = targetIndex - 1; i >= 0; i--) {
+            const current = commits[i];
+            const newCommitData = {
+                message: current.commit.message,
+                tree: current.commit.tree.sha,
+                parents: [previousCommitSha] // Linearize history: point to the new previous commit
+            };
+
+            const response = await githubRequest(`/repos/${owner}/${repo}/git/commits`, 'POST', token, newCommitData);
+            previousCommitSha = response.sha;
+        }
+
+        // 4. Force Update the Ref
+        // PATCH /repos/:owner/:repo/git/refs/heads/:branch
+        const updateRefData = {
+            sha: previousCommitSha,
+            force: true
+        };
+
+        await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, 'PATCH', token, updateRefData);
+
+        return { success: true };
+
+    } catch (e) {
+        console.error('Apply Fix Error:', e);
+        return { success: false, error: e.message };
+    }
+});
+
+// 27. BULK APPLY COMMIT FIXES (OPTIMIZED HISTORY REWRITE)
+ipcMain.handle('applyBulkCommitFixes', async (event, { token, repoFullName, fixes }) => {
+    try {
+        // fixes is array of { sha, newMessage }
+        if (!fixes || fixes.length === 0) return { success: true };
+
+        const [owner, repo] = repoFullName.split('/');
+
+        // 1. Get info to start
+        const defaultBranchData = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+        const defaultBranch = defaultBranchData.default_branch;
+
+        // 2. Get recent history (50)
+        const commits = await githubRequest(`/repos/${owner}/${repo}/commits?per_page=50&sha=${defaultBranch}`, 'GET', token);
+
+        // 3. Find the OLDEST commit in our fixes list to know where to start rebuilding
+        // We want to touch history as little as possible.
+        // Commits are HEAD(0) -> OLDER(N)
+
+        let deepestIndex = -1;
+
+        // Map fixes to a lookup object for speed: { sha: newMessage }
+        const fixMap = {};
+        for (const fix of fixes) {
+            fixMap[fix.sha] = fix.newMessage;
+            const index = commits.findIndex(c => c.sha.startsWith(fix.sha) || c.sha === fix.sha);
+            if (index > deepestIndex) {
+                deepestIndex = index;
+            }
+        }
+
+        if (deepestIndex === -1) {
+            return { success: false, error: 'None of the target commits were found in recent history (last 50).' };
+        }
+
+        // 4. Start rebuilding from data[deepestIndex] up to data[0]
+        let previousCommitSha = null;
+
+        // Initialize parent for the FIRST rebuilt commit (the oldest one we touch)
+        // If oldest touch is at index K, its parent is at index K+1 (if exists)
+        // If K is the last one fetched, we need its parent from 'parents' array.
+        const oldestTouch = commits[deepestIndex];
+        const initialParentSha = oldestTouch.parents.length > 0 ? oldestTouch.parents[0].sha : null;
+
+        // We will assign previousCommitSha iteratively.
+        // For the very first iteration, we pretend we just 'made' the parent.
+        previousCommitSha = initialParentSha;
+
+        // Iterate backwards from Oldest -> Newest (deepestIndex -> 0)
+        for (let i = deepestIndex; i >= 0; i--) {
+            const currentOriginal = commits[i];
+            const currentSha = currentOriginal.sha;
+
+            // Check if we have a new message for this specific commit
+            // Use short SHA matching if needed, though exact is better
+            let messageToUse = currentOriginal.commit.message;
+
+            // Check full SHA or short SHA match
+            if (fixMap[currentSha]) {
+                messageToUse = fixMap[currentSha];
+            } else {
+                // Try finding by prefix
+                const shortSha = currentSha.substring(0, 7);
+                const foundKey = Object.keys(fixMap).find(k => k.startsWith(shortSha) || maxShaMatch(k, currentSha));
+                if (foundKey) messageToUse = fixMap[foundKey];
+            }
+
+            const newCommitData = {
+                message: messageToUse,
+                tree: currentOriginal.commit.tree.sha,
+                parents: previousCommitSha ? [previousCommitSha] : []
+                // Note: If previousCommitSha is null (it's a root commit), pass empty array or null? 
+                // GitHub API expects array.
+            };
+
+            // Create this new commit
+            const response = await githubRequest(`/repos/${owner}/${repo}/git/commits`, 'POST', token, newCommitData);
+            previousCommitSha = response.sha;
+        }
+
+        // 5. Force Update Ref
+        const updateRefData = {
+            sha: previousCommitSha,
+            force: true
+        };
+
+        await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, 'PATCH', token, updateRefData);
+
+        return { success: true };
+
+    } catch (e) {
+        console.error('Bulk Fix Error:', e);
+        return { success: false, error: e.message };
+    }
+});
+
+function maxShaMatch(a, b) {
+    return a.includes(b) || b.includes(a);
+}

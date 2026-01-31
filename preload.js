@@ -45,6 +45,11 @@ contextBridge.exposeInMainWorld('api', {
     // External Repo Analyzer
     analyzeExternalRepo: (data) => ipcRenderer.invoke('analyzeExternalRepo', data),
 
+    // AI Commits
+    analyzeCommitsAI: (token, routerKey, repoFullName) => ipcRenderer.invoke('analyzeCommitsAI', { token, routerKey, repoFullName }),
+    applyCommitFix: (token, repoFullName, sha, newMessage) => ipcRenderer.invoke('applyCommitFix', { token, repoFullName, sha, newMessage }),
+    applyBulkCommitFixes: (token, repoFullName, fixes) => ipcRenderer.invoke('applyBulkCommitFixes', { token, repoFullName, fixes }),
+
     // Window Controls
     minimize: () => ipcRenderer.send('app:minimize'),
     maximize: () => ipcRenderer.send('app:maximize'),
