@@ -11,6 +11,8 @@ A powerful Electron desktop application designed to help you manage, clean up, a
 - **Filtering & Sorting:** Filter by Source/Fork and sort by update date
 - **Search:** Quick search to find repositories by name
 - **Dual View Modes:** Switch between List and Grid views
+- **License Status Display:** Instantly see if a repo has an MIT license, another license, or no license
+- **Bulk Selection:** Select all repositories on the current page with a single click
 - **Bulk Deletion:** Select and delete multiple repositories at once
 
 ### AI-Powered Features (Requires OpenRouter API Key)
