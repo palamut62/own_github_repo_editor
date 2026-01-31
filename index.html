@@ -48,6 +48,31 @@
             /* Space for Traffic Lights */
             flex-shrink: 0;
             position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar scrollbar styling */
+        .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: var(--bg-sidebar);
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
         .traffic-lights {
@@ -96,7 +121,7 @@
         }
 
         .nav-group {
-            padding: 20px;
+            padding: 12px 20px;
         }
 
         .nav-title {
@@ -126,16 +151,18 @@
             color: var(--text-primary);
         }
 
+        .sidebar-header {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-sidebar);
+            flex-shrink: 0;
+        }
+
         .sidebar-footer {
-            margin-top: auto;
             padding: 20px;
             border-top: 1px solid var(--border-color);
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            box-sizing: border-box;
             background-color: var(--bg-sidebar);
-            /* Ensure opacity */
+            flex-shrink: 0;
         }
 
         /* --- Main Content --- */
@@ -411,6 +438,218 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 20px;
+            min-width: 280px;
+            max-width: 400px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease-out;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            font-size: 16px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Custom Confirm Dialog */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            backdrop-filter: blur(4px);
+        }
+
+        .confirm-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: confirmPop 0.2s ease-out;
+        }
+
+        @keyframes confirmPop {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirm-icon {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .confirm-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .confirm-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .confirm-btn-cancel {
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .confirm-btn-cancel:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .confirm-btn-ok {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .confirm-btn-ok:hover {
+            filter: brightness(1.1);
+        }
+
+        .confirm-btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .confirm-btn-danger:hover {
+            filter: brightness(1.1);
+        }
     </style>
 </head>
 
@@ -423,9 +662,25 @@
         <button class="control-btn btn-maximize" onclick="window.api.maximize()"></button>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Custom Confirm Dialog -->
+    <div id="confirmDialog" class="confirm-overlay">
+        <div class="confirm-box">
+            <div class="confirm-icon" id="confirmIcon">⚠️</div>
+            <div class="confirm-title" id="confirmTitle">Confirm Action</div>
+            <div class="confirm-message" id="confirmMessage">Are you sure?</div>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-btn-cancel" id="confirmCancel">Cancel</button>
+                <button class="confirm-btn confirm-btn-ok" id="confirmOk">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="nav-group">
+        <div class="sidebar-header">
             <div class="nav-title">Browse</div>
             <div class="nav-item active" id="navAll" onclick="applyFilter('all')">
                 <span>All Repos</span>
@@ -441,13 +696,57 @@
             </div>
         </div>
 
-        <div class="nav-group">
-            <div class="nav-title">Actions</div>
-            <div class="nav-item" onclick="startAIRename()">
-                <span>AI Smart Rename</span>
+        <div class="sidebar-content">
+            <div class="nav-group">
+                <div class="nav-title">Actions</div>
+                <div class="nav-item" onclick="startAIRename()">
+                    <span>AI Smart Rename</span>
+                </div>
+                <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
+                    <span>Delete Selected</span>
+                </div>
             </div>
-            <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
-                <span>Delete Selected</span>
+
+            <div class="nav-group">
+                <div class="nav-title">AI Tools</div>
+                <div class="nav-item" onclick="startAIDescription()">
+                    <span>🤖 AI Description</span>
+                </div>
+                <div class="nav-item" onclick="startAIReadme()">
+                    <span>📝 AI README Creator</span>
+                </div>
+                <div class="nav-item" onclick="showSetupInfo()">
+                    <span>📦 Setup / Clone Info</span>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">Organization</div>
+                <div class="nav-item" onclick="openVisibilityModal()">
+                    <span>🔐 Change Visibility</span>
+                </div>
+                <div class="nav-item" onclick="openTopicsModal()">
+                    <span>🏷️ Manage Topics</span>
+                </div>
+                <div class="nav-item" onclick="openLicenseModal()">
+                    <span>📜 Add License</span>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">Analytics & Cleanup</div>
+                <div class="nav-item" onclick="openAnalysisModal()">
+                    <span>📊 Repo Analysis</span>
+                </div>
+                <div class="nav-item" onclick="filterStaleRepos()">
+                    <span>🕐 Stale Repos</span>
+                </div>
+                <div class="nav-item" onclick="filterLargeRepos()">
+                    <span>💾 Large Repos</span>
+                </div>
+                <div class="nav-item" onclick="filterUnchangedForks()">
+                    <span>🔀 Unused Forks</span>
+                </div>
             </div>
         </div>
 
@@ -509,6 +808,22 @@
 
         <div id="status" style="padding: 0 30px; color: var(--accent-yellow); font-size: 13px; height: 20px;"></div>
 
+        <!-- Warning Banner -->
+        <div
+            style="margin: 10px 30px; padding: 12px 16px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 152, 0, 0.1)); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px;">⚠️</span>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 12px; color: var(--accent-yellow); margin-bottom: 2px;">
+                    Warning!
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">This app can permanently
+                    delete or modify repositories. Make sure to backup before making changes. Deleted repos cannot be
+                    recovered!</div>
+            </div>
+            <button onclick="this.parentElement.style.display='none'"
+                style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0.6;">✕</button>
+        </div>
+
         <div id="repoGrid" class="repo-grid">
             <!-- Cards go here -->
             <div style="grid-column: 1/-1; text-align: center; margin-top: 50px; color: var(--text-secondary);">
@@ -528,15 +843,14 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top: 0; margin-bottom: 20px;">⚙️ Settings</h3>
+        <div class="modal-box" style="position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('settingsModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
             <label>GitHub Token:</label>
             <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
             <label>OpenRouter Key:</label>
             <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
-            <div style="text-align: right; gap: 10px;">
-                <button class="btn-dark"
-                    onclick="document.getElementById('settingsModal').style.display='none'">Cancel</button>
+            <div style="text-align: right; gap: 10px; margin-top: 15px;">
                 <button class="btn-primary" onclick="saveSettings()">Save</button>
             </div>
         </div>
@@ -544,42 +858,82 @@
 
     <!-- Help Modal -->
     <div id="helpModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 600px; font-size: 13px; line-height: 1.5;">
-            <h3 style="margin-top: 0; color: var(--accent-blue); font-size: 16px;">📚 User Guide</h3>
+        <div class="modal-box" style="max-width: 650px; font-size: 12px; line-height: 1.6; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('helpModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 16px 0; color: var(--accent-blue); font-size: 15px;">User Guide</h3>
 
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                <h4 style="margin-bottom: 5px; color: var(--text-primary);">1. Getting Started</h4>
-                <p style="margin-top: 0; color: var(--text-secondary);">
-                    Go to <strong>Settings</strong> ⚙️ and enter your <strong>GitHub Token</strong>. This is required to
-                    load your repositories.
-                    For AI renaming, you also need an <strong>OpenRouter API Key</strong>.
-                </p>
+            <div style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
 
-                <h4 style="margin-bottom: 5px; color: var(--text-primary);">2. Navigation & Views</h4>
-                <p style="margin-top: 0; color: var(--text-secondary);">
-                    Use the <strong>Sidebar</strong> to filter repositories by Source or Fork.
-                    Toggle between <strong>List ☰</strong> and <strong>Grid ☷</strong> views using the buttons in the
-                    top header.
-                </p>
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-green); font-size: 12px;">Getting Started</h4>
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        Open <strong>Settings</strong> and enter your <strong>GitHub Token</strong> (with <code>repo</code> and <code>delete_repo</code> scopes).
+                        For AI features, also add your <strong>OpenRouter API Key</strong>.
+                    </p>
+                </div>
 
-                <h4 style="margin-bottom: 5px; color: var(--text-primary);">3. Actions</h4>
-                <ul style="margin-top: 0; padding-left: 20px; color: var(--text-secondary);">
-                    <li><strong>Delete:</strong> Select repositories and click "Delete Selected". <strong
-                            style="color:var(--danger)">Warning: This is permanent!</strong></li>
-                    <li><strong>AI Smart Rename:</strong> Select repositories and click "AI Smart Rename". The AI will
-                        analyze the README and suggest a proper name.</li>
-                </ul>
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-yellow); font-size: 12px;">Navigation</h4>
+                    <ul style="margin: 0; padding-left: 16px; color: var(--text-secondary);">
+                        <li><strong>Sidebar:</strong> Filter by All / Source / Fork repositories</li>
+                        <li><strong>View Toggle:</strong> Switch between List and Grid views</li>
+                        <li><strong>Double-click:</strong> Open detailed repository info modal</li>
+                        <li><strong>Search:</strong> Filter repositories by name</li>
+                    </ul>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--danger); font-size: 12px;">Delete Repositories</h4>
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        Select repositories using checkboxes, then click <strong>Delete Selected</strong>.
+                        <span style="color: var(--danger);">This action is permanent and cannot be undone!</span>
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">AI Features (Requires OpenRouter Key)</h4>
+                    <ul style="margin: 0; padding-left: 16px; color: var(--text-secondary);">
+                        <li><strong>AI Smart Rename:</strong> Analyzes README content and suggests appropriate repository names</li>
+                        <li><strong>AI Description:</strong> Generates professional descriptions based on README</li>
+                        <li><strong>AI README Creator:</strong> Creates README.md files analyzing repository structure</li>
+                    </ul>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-purple); font-size: 12px;">Organization Tools</h4>
+                    <ul style="margin: 0; padding-left: 16px; color: var(--text-secondary);">
+                        <li><strong>Visibility:</strong> Change repositories between Public and Private</li>
+                        <li><strong>Topics:</strong> Add or remove topics for better discoverability</li>
+                        <li><strong>License:</strong> Add MIT, Apache 2.0, GPL-3.0, or ISC license files</li>
+                        <li><strong>Setup/Clone:</strong> Quick access to clone URLs and setup commands</li>
+                    </ul>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-green); font-size: 12px;">Repository Analysis</h4>
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        Click <strong>Analysis</strong> to scan all repositories and identify: stale repos (no updates in 6+ months),
+                        large repos (50+ MB), unchanged forks, and repos without stars. Helps you clean up and organize.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">Fork Management</h4>
+                    <p style="margin: 0; color: var(--text-secondary);">
+                        Double-click a forked repository to see sync status with upstream.
+                        Use the <strong>Sync</strong> button to update your fork with the latest changes from the parent repository.
+                    </p>
+                </div>
+
             </div>
-
-            <button class="btn-primary" style="width: 100%; margin-top: 20px;"
-                onclick="document.getElementById('helpModal').style.display='none'">Close</button>
         </div>
     </div>
 
     <!-- Rename Modal -->
     <div id="renameModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 900px; height: 80%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">🤖 AI Suggestions</h3>
+        <div class="modal-box" style="max-width: 900px; height: 80%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('renameModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Suggestions</h3>
             <div
                 style="flex: 1; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
                 <table style="width: 100%; border-collapse: collapse; color: var(--text-secondary);">
@@ -593,9 +947,7 @@
                     <tbody id="renameTableBody"></tbody>
                 </table>
             </div>
-            <div style="text-align: right; gap: 10px;">
-                <button class="btn-dark"
-                    onclick="document.getElementById('renameModal').style.display='none'">Cancel</button>
+            <div style="text-align: right;">
                 <button id="btnExecuteRename" class="btn-primary" onclick="executeRenames()">Confirm & Rename</button>
             </div>
         </div>
@@ -603,7 +955,8 @@
 
     <!-- Custom Alert -->
     <div id="customModal" class="modal-overlay">
-        <div class="modal-box">
+        <div class="modal-box" style="position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('customModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
             <h3 id="modalTitle">Title</h3>
             <div id="modalContent" style="margin-bottom: 20px;">Content</div>
             <button class="btn-primary"
@@ -611,7 +964,272 @@
         </div>
     </div>
 
+    <!-- AI Description Modal -->
+    <div id="descriptionModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 800px; height: 70%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('descriptionModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Description Generator</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                AI will analyze the README and suggest a professional description for each selected repository.
+            </p>
+            <div
+                style="flex: 1; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                <table style="width: 100%; border-collapse: collapse; color: var(--text-secondary);">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border-color);">
+                            <th style="padding: 8px;">Repository</th>
+                            <th style="padding: 8px;">Suggested Description</th>
+                            <th style="padding: 8px; width: 80px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="descriptionTableBody"></tbody>
+                </table>
+            </div>
+            <div style="text-align: right;">
+                <button id="btnApplyDescriptions" class="btn-primary" onclick="applyDescriptions()">Apply All Descriptions</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI README Modal -->
+    <div id="readmeModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('readmeModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 10px 0; color: var(--accent-green);">AI README Creator</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">
+                AI will analyze the repository files and generate a professional README.md
+            </p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary); font-size: 12px;" id="readmeRepoName">Repository: -</span>
+            </div>
+            <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <textarea id="readmeContent"
+                    style="flex: 1; width: 100%; background: var(--bg-input); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; resize: none; box-sizing: border-box;"></textarea>
+            </div>
+            <div style="text-align: right; margin-top: 10px;">
+                <button id="btnSaveReadme" class="btn-primary" onclick="saveReadmeToRepo()">Save to Repository</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup / Clone Info Modal -->
+    <div id="setupModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 700px; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('setupModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Setup / Clone Instructions</h3>
+            <div id="setupContent" style="color: var(--text-secondary); font-size: 13px;">
+                <p>Select a repository first.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repo Detail Modal (Double-click) -->
+    <div id="repoDetailModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 520px; max-height: 85%; display: flex; flex-direction: column; padding: 16px; position: relative;">
+            <div onclick="document.getElementById('repoDetailModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <div id="repoDetailContent" style="flex: 1; overflow-y: auto;">
+                <p style="color: var(--text-secondary);">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visibility Modal -->
+    <div id="visibilityModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('visibilityModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Change Visibility</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                Change the visibility of selected repositories.
+                <strong style="color: var(--danger);">Warning:</strong> Private repos require a paid GitHub plan.
+            </p>
+            <div id="visibilityRepoList"
+                style="background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 15px; max-height: 150px; overflow-y: auto;">
+                <p style="color: var(--text-secondary);">No repos selected</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" id="btnMakePublic" onclick="changeVisibility('public')"
+                    style="flex: 1; background: var(--accent-green);">
+                    Make Public
+                </button>
+                <button class="btn-primary" id="btnMakePrivate" onclick="changeVisibility('private')"
+                    style="flex: 1; background: var(--danger);">
+                    Make Private
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Topics Modal -->
+    <div id="topicsModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('topicsModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Manage Topics</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                Add or remove topics from selected repositories. Topics help categorize and discover repositories.
+            </p>
+            <div id="topicsRepoList"
+                style="background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 15px; max-height: 100px; overflow-y: auto;">
+                <p style="color: var(--text-secondary);">No repos selected</p>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: var(--text-secondary);">Topics (comma-separated):</label>
+                <input type="text" id="topicsInput" class="auth-input" placeholder="javascript, electron, ai, tool"
+                    style="margin-top: 5px;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: var(--text-secondary);">Quick Add:</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    <button class="btn-dark" onclick="addTopicQuick('javascript')" style="padding: 4px 10px; font-size: 11px;">javascript</button>
+                    <button class="btn-dark" onclick="addTopicQuick('typescript')" style="padding: 4px 10px; font-size: 11px;">typescript</button>
+                    <button class="btn-dark" onclick="addTopicQuick('python')" style="padding: 4px 10px; font-size: 11px;">python</button>
+                    <button class="btn-dark" onclick="addTopicQuick('electron')" style="padding: 4px 10px; font-size: 11px;">electron</button>
+                    <button class="btn-dark" onclick="addTopicQuick('nodejs')" style="padding: 4px 10px; font-size: 11px;">nodejs</button>
+                    <button class="btn-dark" onclick="addTopicQuick('ai')" style="padding: 4px 10px; font-size: 11px;">ai</button>
+                    <button class="btn-dark" onclick="addTopicQuick('react')" style="padding: 4px 10px; font-size: 11px;">react</button>
+                    <button class="btn-dark" onclick="addTopicQuick('nextjs')" style="padding: 4px 10px; font-size: 11px;">nextjs</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" id="btnAddTopics" onclick="applyTopics('add')" style="flex: 1;">
+                    Add Topics
+                </button>
+                <button class="btn-primary" id="btnRemoveTopics" onclick="applyTopics('remove')"
+                    style="flex: 1; background: var(--danger);">
+                    Remove Topics
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Modal -->
+    <div id="licenseModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('licenseModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-green);">Add License</h3>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                Add a license file to selected repositories. This helps others understand how they can use your code.
+            </p>
+            <div id="licenseRepoList"
+                style="background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 15px; max-height: 150px; overflow-y: auto;">
+                <p style="color: var(--text-secondary);">No repos selected</p>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: var(--text-secondary);">License Type:</label>
+                <select id="licenseType" class="input-dark" style="width: 100%; margin-top: 5px; padding: 10px;">
+                    <option value="MIT">MIT License (Most Popular)</option>
+                    <option value="Apache-2.0">Apache License 2.0</option>
+                    <option value="GPL-3.0">GNU GPL v3</option>
+                    <option value="ISC">ISC License</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: var(--text-secondary);">Author Name:</label>
+                <input type="text" id="licenseAuthor" class="auth-input" placeholder="Your Name"
+                    style="margin-top: 5px;">
+            </div>
+            <button class="btn-primary" id="btnApplyLicense" onclick="applyLicense()" style="width: 100%;">
+                Add License to Repos
+            </button>
+        </div>
+    </div>
+
+    <!-- Analysis Modal -->
+    <div id="analysisModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 900px; max-height: 90%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
+            <div onclick="document.getElementById('analysisModal').style.display='none'" style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;"></div>
+            <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Repository Analysis</h3>
+            <div id="analysisContent" style="flex: 1; overflow-y: auto; padding-right: 10px;">
+                <p style="color: var(--text-secondary); text-align: center; padding: 40px;">Click "Run Analysis" to scan
+                    your repositories...</p>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <button class="btn-primary" id="btnRunAnalysis" onclick="runAnalysis()" style="width: 100%;">
+                    Run Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ========== TOAST & CONFIRM SYSTEM ==========
+        function showToast(message, type = 'info', title = null, duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const titles = {
+                success: 'Success',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Info'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title || titles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        let confirmResolve = null;
+
+        function showConfirm(message, options = {}) {
+            return new Promise((resolve) => {
+                confirmResolve = resolve;
+                const dialog = document.getElementById('confirmDialog');
+                const iconEl = document.getElementById('confirmIcon');
+                const titleEl = document.getElementById('confirmTitle');
+                const msgEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOk');
+                const cancelBtn = document.getElementById('confirmCancel');
+
+                const icons = {
+                    warning: '⚠️',
+                    danger: '🗑️',
+                    info: 'ℹ️',
+                    question: '❓'
+                };
+
+                iconEl.textContent = icons[options.type || 'warning'];
+                titleEl.textContent = options.title || 'Confirm Action';
+                msgEl.textContent = message;
+                okBtn.textContent = options.okText || 'OK';
+                cancelBtn.textContent = options.cancelText || 'Cancel';
+
+                // Set button style
+                okBtn.className = 'confirm-btn ' + (options.danger ? 'confirm-btn-danger' : 'confirm-btn-ok');
+
+                dialog.style.display = 'flex';
+            });
+        }
+
+        document.getElementById('confirmOk').addEventListener('click', () => {
+            document.getElementById('confirmDialog').style.display = 'none';
+            if (confirmResolve) confirmResolve(true);
+        });
+
+        document.getElementById('confirmCancel').addEventListener('click', () => {
+            document.getElementById('confirmDialog').style.display = 'none';
+            if (confirmResolve) confirmResolve(false);
+        });
+
         // State
         let allRepos = [];
         let filteredRepos = [];
@@ -751,6 +1369,12 @@
                         // Visual selection state could go here
                     };
 
+                    // Double-click to open detail modal
+                    card.ondblclick = (e) => {
+                        e.preventDefault();
+                        openRepoDetail(repo.full_name);
+                    };
+
                     grid.appendChild(card);
                 });
             }
@@ -780,7 +1404,7 @@
                 applyFilter(currentFilter);
             } else {
                 document.getElementById('status').innerText = 'Error loading.';
-                alert(res.error);
+                showToast(res.error, 'error');
             }
         }
 
@@ -798,7 +1422,7 @@
             await window.api.saveToken(t);
             await window.api.saveRouterKey(k);
             document.getElementById('settingsModal').style.display = 'none';
-            alert('Saved.');
+            showToast('Settings saved!', 'success');
         }
 
         // --- Actions ---
@@ -809,27 +1433,34 @@
 
         async function deleteSelected() {
             const selected = getSelected();
-            if (selected.length === 0) return alert('Select repos first.');
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
 
-            if (!confirm(`Delete ${selected.length} repos? This is PERMANENT.`)) return;
+            const confirmed = await showConfirm(`Delete ${selected.length} repos? This is PERMANENT.`, {
+                type: 'danger',
+                title: 'Delete Repositories',
+                okText: 'Delete',
+                danger: true
+            });
+            if (!confirmed) return;
 
             document.getElementById('status').innerText = 'Deleting...';
             // Logic similar to previous, simplified for this rewrite view
             const token = await window.api.getToken();
             await window.api.deleteRepos({ token, repos: selected });
             document.getElementById('status').innerText = 'Deleted.';
+            showToast('Repositories deleted successfully!', 'success');
             loadRepos(); // Refresh
         }
 
         async function startAIRename() {
             const selected = getSelected();
-            if (selected.length === 0) return alert('Select repos first.');
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
 
             document.getElementById('status').innerText = 'Analyzing...';
             const token = await window.api.getToken();
             const routerKey = await window.api.getRouterKey();
 
-            if (!routerKey) { alert('Add AI Key in Settings.'); openSettings(); return; }
+            if (!routerKey) { showToast('Add AI Key in Settings.', 'warning'); openSettings(); return; }
 
             const results = await window.api.analyzeReposAI({ token, routerKey, repos: selected });
 
@@ -867,10 +1498,706 @@
             const results = await window.api.executeRenames({ token, renames });
 
             // Show result status in table? Or just alert done.
-            alert('Renames processed.');
+            showToast('Renames processed successfully!', 'success');
             document.getElementById('renameModal').style.display = 'none';
             btn.innerText = 'Confirm & Rename';
             loadRepos();
+        }
+
+        // ========== NEW AI FEATURES ==========
+
+        // State for new features
+        let descriptionProposals = [];
+        let currentReadmeRepo = null;
+
+        // --- AI Description Generator ---
+        async function startAIDescription() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
+
+            document.getElementById('status').innerText = 'Generating descriptions...';
+            const token = await window.api.getToken();
+            const routerKey = await window.api.getRouterKey();
+
+            if (!routerKey) {
+                showToast('Add AI Key in Settings.', 'warning');
+                openSettings();
+                return;
+            }
+
+            const results = await window.api.generateDescription({ token, routerKey, repos: selected });
+
+            descriptionProposals = results;
+            renderDescriptionTable();
+            document.getElementById('descriptionModal').style.display = 'flex';
+            document.getElementById('status').innerText = '';
+        }
+
+        function renderDescriptionTable() {
+            const tbody = document.getElementById('descriptionTableBody');
+            tbody.innerHTML = '';
+            descriptionProposals.forEach((p, i) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="padding: 8px; font-weight: 500; color: var(--text-primary);">${p.repoName}</td>
+                        <td style="padding: 8px;"><input type="text" id="desc-${i}" value="${p.description}" style="width: 100%; background:var(--bg-input); color:white; border:1px solid var(--border-color); padding:6px; border-radius: 4px;"></td>
+                        <td style="padding: 8px;" id="desc-stat-${i}">Ready</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function applyDescriptions() {
+            const btn = document.getElementById('btnApplyDescriptions');
+            btn.innerText = 'Applying...';
+            const token = await window.api.getToken();
+
+            for (let i = 0; i < descriptionProposals.length; i++) {
+                const p = descriptionProposals[i];
+                const newDesc = document.getElementById(`desc-${i}`).value;
+                const [owner, repo] = p.fullName.split('/');
+
+                document.getElementById(`desc-stat-${i}`).innerText = '⏳';
+
+                const result = await window.api.updateDescription({ token, owner, repo, description: newDesc });
+
+                if (result.success) {
+                    document.getElementById(`desc-stat-${i}`).innerHTML = '<span style="color: var(--accent-green);">✓</span>';
+                } else {
+                    document.getElementById(`desc-stat-${i}`).innerHTML = '<span style="color: var(--danger);">✗</span>';
+                }
+            }
+
+            btn.innerText = 'Apply All Descriptions';
+            showToast('Descriptions updated successfully!', 'success');
+            loadRepos();
+        }
+
+        // --- AI README Creator ---
+        async function startAIReadme() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select a repo first.', 'warning');
+            if (selected.length > 1) return showToast('Please select only ONE repository for README generation.', 'warning');
+
+            const fullName = selected[0];
+            currentReadmeRepo = fullName;
+
+            document.getElementById('status').innerText = 'Generating README...';
+            document.getElementById('readmeRepoName').innerText = `Repository: ${fullName}`;
+            document.getElementById('readmeContent').value = 'Generating... Please wait...';
+            document.getElementById('readmeModal').style.display = 'flex';
+
+            const token = await window.api.getToken();
+            const routerKey = await window.api.getRouterKey();
+
+            if (!routerKey) {
+                showToast('Add AI Key in Settings.', 'warning');
+                openSettings();
+                document.getElementById('readmeModal').style.display = 'none';
+                return;
+            }
+
+            const result = await window.api.generateReadme({ token, routerKey, fullName });
+
+            if (result.success) {
+                document.getElementById('readmeContent').value = result.readme;
+            } else {
+                document.getElementById('readmeContent').value = `Error: ${result.error}\n\nTry again or create manually.`;
+            }
+
+            document.getElementById('status').innerText = '';
+        }
+
+        async function saveReadmeToRepo() {
+            if (!currentReadmeRepo) return showToast('No repository selected.', 'warning');
+
+            const content = document.getElementById('readmeContent').value;
+            if (!content || content.startsWith('Error:') || content.startsWith('Generating')) {
+                return showToast('Invalid README content.', 'error');
+            }
+
+            const btn = document.getElementById('btnSaveReadme');
+            btn.innerText = 'Saving...';
+
+            const token = await window.api.getToken();
+            const result = await window.api.createReadmeInRepo({ token, fullName: currentReadmeRepo, content });
+
+            if (result.success) {
+                showToast('README.md saved to repository successfully!', 'success');
+                document.getElementById('readmeModal').style.display = 'none';
+            } else {
+                showToast(`Error saving README: ${result.error}`, 'error');
+            }
+
+            btn.innerText = '💾 Save to Repository';
+        }
+
+        // --- Setup / Clone Info ---
+        async function showSetupInfo() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select a repo first.', 'warning');
+            if (selected.length > 1) return showToast('Please select only ONE repository.', 'warning');
+
+            const fullName = selected[0];
+            document.getElementById('status').innerText = 'Loading repo info...';
+
+            const token = await window.api.getToken();
+            const result = await window.api.getRepoDetails({ token, fullName });
+
+            if (!result.success) {
+                showToast(`Error: ${result.error}`, 'error');
+                document.getElementById('status').innerText = '';
+                return;
+            }
+
+            const repo = result.data;
+            const setupHtml = `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--text-primary); margin: 0 0 5px 0;">${repo.name}</h4>
+                    <p style="margin: 0; color: var(--text-secondary);">${repo.description || 'No description'}</p>
+                    <span style="font-size: 11px; color: ${repo.private ? 'var(--danger)' : 'var(--accent-green)'};">
+                        ${repo.private ? '🔒 Private' : '🌐 Public'}
+                    </span>
+                    ${repo.language ? `<span style="font-size: 11px; margin-left: 10px;">📝 ${repo.language}</span>` : ''}
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <h5 style="color: var(--accent-blue); margin: 0 0 10px 0;">📥 Clone Repository</h5>
+                    
+                    <p style="margin: 0 0 5px 0; font-size: 12px; color: var(--text-secondary);">HTTPS:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <input type="text" value="${repo.cloneUrl}" readonly 
+                            style="flex: 1; background: var(--bg-input); color: white; border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
+                        <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.cloneUrl}'); this.innerText='✓';" style="padding: 8px 12px;">📋</button>
+                    </div>
+
+                    <p style="margin: 0 0 5px 0; font-size: 12px; color: var(--text-secondary);">SSH:</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" value="${repo.sshUrl}" readonly 
+                            style="flex: 1; background: var(--bg-input); color: white; border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
+                        <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.sshUrl}'); this.innerText='✓';" style="padding: 8px 12px;">📋</button>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 8px; padding: 15px;">
+                    <h5 style="color: var(--accent-green); margin: 0 0 10px 0;">🛠️ Quick Setup</h5>
+                    <pre style="background: var(--bg-input); padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; margin: 0; color: var(--text-primary);">
+# Clone the repository
+git clone ${repo.cloneUrl}
+
+# Navigate to directory
+cd ${repo.name}
+
+# Install dependencies (if Node.js project)
+npm install
+
+# Start the application
+npm start</pre>
+                </div>
+
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn-dark" onclick="window.api.openExternal('${repo.htmlUrl}')" style="padding: 10px 20px;">
+                        🔗 Open on GitHub
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('setupContent').innerHTML = setupHtml;
+            document.getElementById('setupModal').style.display = 'flex';
+            document.getElementById('status').innerText = '';
+        }
+
+        // ========== REPO DETAIL MODAL (DOUBLE-CLICK) ==========
+        let currentDetailRepo = null;
+
+        async function openRepoDetail(fullName) {
+            currentDetailRepo = fullName;
+            document.getElementById('repoDetailContent').innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Loading repository details...</p>';
+            document.getElementById('repoDetailModal').style.display = 'flex';
+
+            const token = await window.api.getToken();
+            const result = await window.api.getDetailedRepoInfo({ token, fullName });
+
+            if (!result.success) {
+                document.getElementById('repoDetailContent').innerHTML = `<p style="color: var(--danger);">Error: ${result.error}</p>`;
+                return;
+            }
+
+            const repo = result.data;
+
+            // Fork sync section
+            let forkSyncHtml = '';
+            if (repo.fork && repo.parentInfo) {
+                const isBehind = repo.syncStatus && repo.syncStatus.behind > 0;
+                forkSyncHtml = `
+                    <div style="background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.3); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 11px; color: var(--text-secondary);">Forked from <a href="#" onclick="window.api.openExternal('${repo.parentInfo.htmlUrl}'); return false;" style="color: var(--accent-blue); text-decoration: none;">${repo.parentInfo.fullName}</a></div>
+                            <div style="font-size: 10px; margin-top: 2px; color: ${isBehind ? 'var(--accent-yellow)' : 'var(--accent-green)'};">
+                                ${isBehind ? `${repo.syncStatus.behind} commit(s) behind` : 'Up to date'}
+                            </div>
+                        </div>
+                        <button class="btn-dark" id="btnSyncFork" onclick="syncForkRepo('${fullName}')" style="padding: 6px 12px; font-size: 11px;">
+                            Sync
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Topics
+            let topicsHtml = '';
+            if (repo.topics && repo.topics.length > 0) {
+                const topicBadges = repo.topics.slice(0, 6).map(t =>
+                    `<span style="background: rgba(88,166,255,0.12); color: var(--accent-blue); padding: 3px 8px; border-radius: 10px; font-size: 10px;">${t}</span>`
+                ).join(' ');
+                topicsHtml = `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px;">${topicBadges}</div>`;
+            }
+
+            const detailHtml = `
+                <!-- Header -->
+                <div style="margin-top: 16px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="margin: 0 0 4px 0; color: var(--text-primary); font-size: 15px; font-weight: 600;">${repo.name}</h3>
+                    <p style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.4;">${repo.description || 'No description'}</p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <span style="padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: ${repo.private ? 'rgba(248,81,73,0.15)' : 'rgba(63,185,80,0.15)'}; color: ${repo.private ? 'var(--danger)' : 'var(--accent-green)'};">
+                            ${repo.private ? 'PRIVATE' : 'PUBLIC'}
+                        </span>
+                        <span style="padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: ${repo.fork ? 'rgba(163,113,247,0.15)' : 'rgba(63,185,80,0.15)'}; color: ${repo.fork ? 'var(--accent-purple)' : 'var(--accent-green)'};">
+                            ${repo.fork ? 'FORK' : 'SOURCE'}
+                        </span>
+                        ${repo.language ? `<span style="padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: rgba(88,166,255,0.15); color: var(--accent-blue);">${repo.language}</span>` : ''}
+                    </div>
+                </div>
+
+                ${topicsHtml}
+
+                <!-- Stats Row -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div style="flex: 1; background: var(--bg-body); padding: 10px 8px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--accent-yellow);">${repo.stargazersCount}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Stars</div>
+                    </div>
+                    <div style="flex: 1; background: var(--bg-body); padding: 10px 8px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--accent-blue);">${repo.forksCount}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Forks</div>
+                    </div>
+                    <div style="flex: 1; background: var(--bg-body); padding: 10px 8px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--accent-green);">${repo.watchersCount}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Watch</div>
+                    </div>
+                    <div style="flex: 1; background: var(--bg-body); padding: 10px 8px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--danger);">${repo.openIssuesCount}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Issues</div>
+                    </div>
+                </div>
+
+                ${forkSyncHtml}
+
+                <!-- Two Column Layout -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <!-- Languages -->
+                    ${Object.keys(repo.languages || {}).length > 0 ? `
+                    <div style="background: var(--bg-body); border-radius: 6px; padding: 12px;">
+                        <div style="font-size: 11px; font-weight: 600; color: var(--accent-yellow); margin-bottom: 8px;">Languages</div>
+                        ${Object.entries(repo.languages).slice(0, 4).map(([lang, bytes]) => {
+                            const pct = ((bytes / Object.values(repo.languages).reduce((a, b) => a + b, 0)) * 100).toFixed(0);
+                            const colors = {'JavaScript': '#f1e05a', 'TypeScript': '#3178c6', 'Python': '#3572A5', 'HTML': '#e34c26', 'CSS': '#563d7c'};
+                            return `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 11px;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${colors[lang] || '#808080'};"></span>
+                                <span style="flex: 1; color: var(--text-secondary);">${lang}</span>
+                                <span style="color: var(--text-secondary);">${pct}%</span>
+                            </div>`;
+                        }).join('')}
+                    </div>` : '<div></div>'}
+
+                    <!-- Clone URLs -->
+                    <div style="background: var(--bg-body); border-radius: 6px; padding: 12px;">
+                        <div style="font-size: 11px; font-weight: 600; color: var(--accent-blue); margin-bottom: 8px;">Clone</div>
+                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                            <input type="text" value="${repo.cloneUrl}" readonly style="flex: 1; background: var(--bg-input); color: var(--text-secondary); border: none; padding: 6px 8px; border-radius: 4px; font-size: 10px; min-width: 0;">
+                            <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.cloneUrl}'); this.innerText='OK';" style="padding: 6px 10px; font-size: 10px;">HTTPS</button>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <input type="text" value="${repo.sshUrl}" readonly style="flex: 1; background: var(--bg-input); color: var(--text-secondary); border: none; padding: 6px 8px; border-radius: 4px; font-size: 10px; min-width: 0;">
+                            <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.sshUrl}'); this.innerText='OK';" style="padding: 6px 10px; font-size: 10px;">SSH</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Commits (Compact) -->
+                ${repo.recentCommits && repo.recentCommits.length > 0 ? `
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 11px; font-weight: 600; color: var(--accent-green); margin-bottom: 8px;">Recent Commits</div>
+                    ${repo.recentCommits.slice(0, 3).map(c => `
+                        <div style="display: flex; gap: 8px; padding: 4px 0; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <code style="color: var(--accent-blue); flex-shrink: 0;">${c.sha}</code>
+                            <span style="flex: 1; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.message}</span>
+                            <span style="color: var(--text-secondary); opacity: 0.7; flex-shrink: 0;">${new Date(c.date).toLocaleDateString('tr-TR', {day: '2-digit', month: 'short'})}</span>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+
+                <!-- Quick Commands -->
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 11px; font-weight: 600; color: var(--accent-purple); margin-bottom: 8px;">Quick Setup</div>
+                    <pre style="background: var(--bg-input); padding: 10px; border-radius: 4px; font-size: 10px; margin: 0; overflow-x: auto; color: var(--text-secondary);">git clone ${repo.cloneUrl} && cd ${repo.name}</pre>
+                </div>
+
+                <!-- Action Button -->
+                <button class="btn-primary" onclick="window.api.openExternal('${repo.htmlUrl}')" style="width: 100%; padding: 10px; font-size: 12px;">
+                    Open on GitHub
+                </button>
+            `;
+
+            document.getElementById('repoDetailContent').innerHTML = detailHtml;
+        }
+
+        async function syncForkRepo(fullName) {
+            const btn = document.getElementById('btnSyncFork');
+            btn.innerText = '⏳ Syncing...';
+            btn.disabled = true;
+
+            const token = await window.api.getToken();
+            const result = await window.api.syncFork({ token, fullName });
+
+            if (result.success) {
+                btn.innerText = '✓ Synced!';
+                btn.style.background = 'var(--accent-green)';
+                showToast('Fork synced successfully with upstream!', 'success');
+                // Refresh the detail modal
+                setTimeout(() => openRepoDetail(fullName), 1000);
+            } else {
+                btn.innerText = '✗ Failed';
+                btn.style.background = 'var(--danger)';
+                showToast(`Sync failed: ${result.error}`, 'error');
+            }
+
+            setTimeout(() => {
+                btn.innerText = '🔄 Sync Fork with Upstream';
+                btn.style.background = '';
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        // ========== ORGANIZATION FEATURES ==========
+
+        // --- Visibility ---
+        function openVisibilityModal() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
+
+            const list = selected.map(r => `<div style="padding: 4px 0; font-size: 12px;">• ${r}</div>`).join('');
+            document.getElementById('visibilityRepoList').innerHTML = list;
+            document.getElementById('visibilityModal').style.display = 'flex';
+        }
+
+        async function changeVisibility(visibility) {
+            const selected = getSelected();
+            if (selected.length === 0) return;
+
+            const confirmMsg = visibility === 'private'
+                ? `Make ${selected.length} repo(s) PRIVATE? This requires a paid GitHub plan.`
+                : `Make ${selected.length} repo(s) PUBLIC? Anyone will be able to see them.`;
+
+            const confirmed = await showConfirm(confirmMsg, { type: 'warning', title: 'Change Visibility', okText: 'Confirm' });
+            if (!confirmed) return;
+
+            const btn = visibility === 'public' ? document.getElementById('btnMakePublic') : document.getElementById('btnMakePrivate');
+            btn.innerText = 'Processing...';
+
+            const token = await window.api.getToken();
+            const results = await window.api.changeVisibility({ token, repos: selected, visibility });
+
+            const success = results.filter(r => r.status === 'success').length;
+            const failed = results.filter(r => r.status === 'error').length;
+
+            btn.innerText = visibility === 'public' ? '🌐 Make Public' : '🔒 Make Private';
+            document.getElementById('visibilityModal').style.display = 'none';
+
+            showToast(`✓ Success: ${success}\n✗ Failed: ${failed}`, success > 0 ? 'success' : 'error', 'Visibility Changed');
+            loadRepos();
+        }
+
+        // --- Topics ---
+        function openTopicsModal() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
+
+            const list = selected.map(r => `<div style="padding: 4px 0; font-size: 12px;">• ${r}</div>`).join('');
+            document.getElementById('topicsRepoList').innerHTML = list;
+            document.getElementById('topicsInput').value = '';
+            document.getElementById('topicsModal').style.display = 'flex';
+        }
+
+        function addTopicQuick(topic) {
+            const input = document.getElementById('topicsInput');
+            const current = input.value.trim();
+            if (current) {
+                const topics = current.split(',').map(t => t.trim()).filter(t => t);
+                if (!topics.includes(topic)) {
+                    topics.push(topic);
+                }
+                input.value = topics.join(', ');
+            } else {
+                input.value = topic;
+            }
+        }
+
+        async function applyTopics(action) {
+            const selected = getSelected();
+            if (selected.length === 0) return;
+
+            const topicsRaw = document.getElementById('topicsInput').value;
+            const topics = topicsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+
+            if (topics.length === 0) return showToast('Enter at least one topic.', 'warning');
+
+            const btn = action === 'add' ? document.getElementById('btnAddTopics') : document.getElementById('btnRemoveTopics');
+            btn.innerText = 'Processing...';
+
+            const token = await window.api.getToken();
+            const results = await window.api.updateTopics({ token, repos: selected, topics, action });
+
+            const success = results.filter(r => r.status === 'success').length;
+            const failed = results.filter(r => r.status === 'error').length;
+
+            btn.innerText = action === 'add' ? '➕ Add Topics' : '➖ Remove Topics';
+            document.getElementById('topicsModal').style.display = 'none';
+
+            showToast(`✓ Success: ${success}\n✗ Failed: ${failed}`, success > 0 ? 'success' : 'error', `Topics ${action === 'add' ? 'Added' : 'Removed'}`);
+            loadRepos();
+        }
+
+        // --- License ---
+        function openLicenseModal() {
+            const selected = getSelected();
+            if (selected.length === 0) return showToast('Select repos first.', 'warning');
+
+            const list = selected.map(r => `<div style="padding: 4px 0; font-size: 12px;">• ${r}</div>`).join('');
+            document.getElementById('licenseRepoList').innerHTML = list;
+            document.getElementById('licenseModal').style.display = 'flex';
+        }
+
+        async function applyLicense() {
+            const selected = getSelected();
+            if (selected.length === 0) return;
+
+            const licenseType = document.getElementById('licenseType').value;
+            const authorName = document.getElementById('licenseAuthor').value || 'Author';
+
+            const confirmed = await showConfirm(`Add ${licenseType} license to ${selected.length} repo(s)?`, { type: 'info', title: 'Add License', okText: 'Add License' });
+            if (!confirmed) return;
+
+            const btn = document.getElementById('btnApplyLicense');
+            btn.innerText = 'Adding licenses...';
+
+            const token = await window.api.getToken();
+            const results = await window.api.addLicense({ token, repos: selected, licenseType, authorName });
+
+            const success = results.filter(r => r.status === 'success').length;
+            const failed = results.filter(r => r.status === 'error').length;
+
+            btn.innerText = '📜 Add License to Repos';
+            document.getElementById('licenseModal').style.display = 'none';
+
+            showToast(`✓ Success: ${success}\n✗ Failed: ${failed}`, success > 0 ? 'success' : 'error', 'Licenses Added');
+            loadRepos();
+        }
+
+        // ========== ANALYSIS & CLEANUP FEATURES ==========
+        let analysisData = null;
+
+        function openAnalysisModal() {
+            document.getElementById('analysisModal').style.display = 'flex';
+        }
+
+        async function runAnalysis() {
+            const btn = document.getElementById('btnRunAnalysis');
+            btn.innerText = '⏳ Analyzing...';
+            btn.disabled = true;
+            document.getElementById('analysisContent').innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Analyzing all repositories... This may take a moment.</p>';
+
+            const token = await window.api.getToken();
+            const result = await window.api.analyzeAllRepos({ token });
+
+            btn.innerText = '🔍 Run Analysis';
+            btn.disabled = false;
+
+            if (!result.success) {
+                document.getElementById('analysisContent').innerHTML = `<p style="color: var(--danger);">Error: ${result.error}</p>`;
+                return;
+            }
+
+            analysisData = result.analysis;
+            renderAnalysis();
+        }
+
+        function formatSizeKB(sizeKB) {
+            if (sizeKB < 1024) return `${sizeKB} KB`;
+            if (sizeKB < 1024 * 1024) return `${(sizeKB / 1024).toFixed(1)} MB`;
+            return `${(sizeKB / (1024 * 1024)).toFixed(2)} GB`;
+        }
+
+        function renderAnalysis() {
+            if (!analysisData) return;
+            const a = analysisData;
+
+            // Language chart
+            const langEntries = Object.entries(a.sizeByLanguage).sort((x, y) => y[1] - x[1]).slice(0, 8);
+            const maxLang = langEntries.length > 0 ? langEntries[0][1] : 1;
+            const langBars = langEntries.map(([lang, size]) => {
+                const pct = (size / maxLang) * 100;
+                return `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                    <span style="width: 80px; font-size: 11px;">${lang}</span>
+                    <div style="flex: 1; height: 18px; background: var(--bg-body); border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));"></div>
+                    </div>
+                    <span style="width: 60px; text-align: right; font-size: 11px; color: var(--text-secondary);">${formatSizeKB(size)}</span>
+                </div>`;
+            }).join('');
+
+            // Stale repos list
+            const staleList = a.staleRepos.slice(0, 10).map(r => `
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-size: 12px;">${r.name}</span>
+                    <span style="font-size: 11px; color: var(--text-secondary);">Last push: ${new Date(r.lastPush).toLocaleDateString()}</span>
+                </div>
+            `).join('') || '<p style="color: var(--accent-green); font-size: 12px;">No stale repos! 🎉</p>';
+
+            // Large repos list
+            const largeList = a.largeRepos.slice(0, 10).map(r => `
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-size: 12px;">${r.name}</span>
+                    <span style="font-size: 11px; color: var(--accent-yellow);">${r.sizeFormatted}</span>
+                </div>
+            `).join('') || '<p style="color: var(--accent-green); font-size: 12px;">No large repos found.</p>';
+
+            // Unchanged forks
+            const forkList = a.unchangedForks.slice(0, 10).map(r => `
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-size: 12px;">${r.name}</span>
+                    <span style="font-size: 11px; color: var(--text-secondary);">⭐ ${r.stars}</span>
+                </div>
+            `).join('') || '<p style="color: var(--accent-green); font-size: 12px;">No forks found.</p>';
+
+            const html = `
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(88, 166, 255, 0.05)); border: 1px solid var(--accent-blue); border-radius: 8px; padding: 15px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--accent-blue);">${a.totalRepos}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Total Repos</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(63, 185, 80, 0.1), rgba(63, 185, 80, 0.05)); border: 1px solid var(--accent-green); border-radius: 8px; padding: 15px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--accent-green);">${formatSizeKB(a.totalSize)}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Total Size</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(255, 166, 87, 0.1), rgba(255, 166, 87, 0.05)); border: 1px solid var(--accent-yellow); border-radius: 8px; padding: 15px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--accent-yellow);">${a.staleRepos.length}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Stale (6mo+)</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(248, 81, 73, 0.1), rgba(248, 81, 73, 0.05)); border: 1px solid var(--danger); border-radius: 8px; padding: 15px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--danger);">${a.unchangedForks.length}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Forks</div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-card); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <h5 style="color: var(--accent-blue); margin: 0 0 12px 0;">📊 Size by Language</h5>
+                    ${langBars || '<p style="color: var(--text-secondary); font-size: 12px;">No language data available.</p>'}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: var(--bg-card); border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h5 style="color: var(--accent-yellow); margin: 0;">🕐 Stale Repos (${a.staleRepos.length})</h5>
+                            <button class="btn-dark" onclick="filterStaleRepos(); document.getElementById('analysisModal').style.display='none';" style="padding: 4px 10px; font-size: 10px;">Filter</button>
+                        </div>
+                        ${staleList}
+                    </div>
+
+                    <div style="background: var(--bg-card); border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h5 style="color: var(--danger); margin: 0;">💾 Large Repos (${a.largeRepos.length})</h5>
+                            <button class="btn-dark" onclick="filterLargeRepos(); document.getElementById('analysisModal').style.display='none';" style="padding: 4px 10px; font-size: 10px;">Filter</button>
+                        </div>
+                        ${largeList}
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-card); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h5 style="color: var(--accent-blue); margin: 0;">🔀 Forks (${a.unchangedForks.length})</h5>
+                        <button class="btn-dark" onclick="filterUnchangedForks(); document.getElementById('analysisModal').style.display='none';" style="padding: 4px 10px; font-size: 10px;">Filter</button>
+                    </div>
+                    ${forkList}
+                    <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-secondary);">
+                        💡 Tip: Double-click on a fork to check if it has any changes compared to the parent repo.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-card); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    <h5 style="color: var(--text-secondary); margin: 0 0 10px 0;">⭐ Zero Stars Repos (${a.noStarsRepos.length})</h5>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">
+                        ${a.noStarsRepos.length} repositories have no stars. Consider adding descriptions and READMEs to make them more discoverable!
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('analysisContent').innerHTML = html;
+        }
+
+        // Filter functions
+        async function filterStaleRepos() {
+            if (!analysisData) {
+                const token = await window.api.getToken();
+                const result = await window.api.analyzeAllRepos({ token });
+                if (result.success) analysisData = result.analysis;
+            }
+
+            if (analysisData && analysisData.staleRepos.length > 0) {
+                const staleNames = analysisData.staleRepos.map(r => r.fullName);
+                filteredRepos = allRepos.filter(r => staleNames.includes(r.full_name));
+                currentPage = 1;
+                renderPage();
+                document.getElementById('status').innerText = `Showing ${filteredRepos.length} stale repos (not updated in 6+ months)`;
+            } else {
+                showToast('No stale repos found! Run analysis first.', 'info');
+            }
+        }
+
+        async function filterLargeRepos() {
+            if (!analysisData) {
+                const token = await window.api.getToken();
+                const result = await window.api.analyzeAllRepos({ token });
+                if (result.success) analysisData = result.analysis;
+            }
+
+            if (analysisData && analysisData.largeRepos.length > 0) {
+                const largeNames = analysisData.largeRepos.map(r => r.fullName);
+                filteredRepos = allRepos.filter(r => largeNames.includes(r.full_name));
+                currentPage = 1;
+                renderPage();
+                document.getElementById('status').innerText = `Showing ${filteredRepos.length} large repos (over 50MB)`;
+            } else {
+                showToast('No large repos found! (All repos are under 50MB)', 'success');
+            }
+        }
+
+        async function filterUnchangedForks() {
+            if (!analysisData) {
+                const token = await window.api.getToken();
+                const result = await window.api.analyzeAllRepos({ token });
+                if (result.success) analysisData = result.analysis;
+            }
+
+            if (analysisData && analysisData.unchangedForks.length > 0) {
+                const forkNames = analysisData.unchangedForks.map(r => r.fullName);
+                filteredRepos = allRepos.filter(r => forkNames.includes(r.full_name));
+                currentPage = 1;
+                renderPage();
+                document.getElementById('status').innerText = `Showing ${filteredRepos.length} forked repos - Double-click to check for changes`;
+            } else {
+                showToast('No forked repos found!', 'info');
+            }
         }
     </script>
 </body>
