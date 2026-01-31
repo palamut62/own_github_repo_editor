@@ -341,3 +341,7 @@ ipcMain.on('app:maximize', () => {
 ipcMain.on('app:close', () => {
     mainWindow.close();
 });
+
+ipcMain.on('open-external', (event, url) => {
+    require('electron').shell.openExternal(url);
+});
