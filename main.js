@@ -1609,6 +1609,24 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             execSync(`git config user.email "${userEmail}"`, { cwd: repo.folderPath, stdio: 'pipe' });
             execSync(`git config user.name "${userName}"`, { cwd: repo.folderPath, stdio: 'pipe' });
 
+            // 4b. Auto-generate .gitignore if requested
+            if (repo.autoGitignore) {
+                const gitignorePath = path.join(repo.folderPath, '.gitignore');
+                if (!fs.existsSync(gitignorePath)) {
+                    event.sender.send('publish-progress', {
+                        repoName: repo.repoName,
+                        message: 'Generating .gitignore…',
+                        status: 'processing'
+                    });
+                    const detectedType = detectProjectType(repo.folderPath);
+                    const content = GITIGNORE_TEMPLATES[detectedType] || GITIGNORE_TEMPLATES.generic;
+                    fs.writeFileSync(gitignorePath, content, 'utf-8');
+                    result.steps.push({ step: `.gitignore created (${detectedType})`, status: 'success' });
+                } else {
+                    result.steps.push({ step: '.gitignore already exists, skipped', status: 'info' });
+                }
+            }
+
             // 5. Stage all files
             event.sender.send('publish-progress', {
                 repoName: repo.repoName,
@@ -1625,6 +1643,11 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                 status: 'processing'
             });
 
+            // Build commit message from template
+            const rawMsg = (repo.commitMessage || 'Initial commit').replace(/{{project_name}}/g, repo.repoName);
+            // Escape double quotes for shell
+            const commitMsg = rawMsg.replace(/"/g, '\\"');
+
             let hasCommits = false;
             try {
                 execSync('git log --oneline -1', { cwd: repo.folderPath, stdio: 'pipe' });
@@ -1634,10 +1657,10 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             if (!hasCommits) {
                 const statusOut = execSync('git status --porcelain', { cwd: repo.folderPath }).toString().trim();
                 if (statusOut.length > 0) {
-                    execSync('git commit -m "Initial commit"', { cwd: repo.folderPath, stdio: 'pipe' });
-                    result.steps.push({ step: 'Initial commit created', status: 'success' });
+                    execSync(`git commit -m "${commitMsg}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+                    result.steps.push({ step: `Commit created: "${rawMsg}"`, status: 'success' });
                 } else {
-                    execSync('git commit --allow-empty -m "Initial commit"', { cwd: repo.folderPath, stdio: 'pipe' });
+                    execSync(`git commit --allow-empty -m "${commitMsg}"`, { cwd: repo.folderPath, stdio: 'pipe' });
                     result.steps.push({ step: 'Empty initial commit created', status: 'info' });
                 }
             } else {
@@ -1815,3 +1838,509 @@ ipcMain.handle('syncForkBulk', async (event, { token, repos }) => {
 
     return results;
 });
+
+// ─── App Config (commit templates, defaults) ──────────────────────────────────
+const configFilePath = path.join(__dirname, 'app-config.json');
+
+function loadConfig() {
+    try {
+        if (fs.existsSync(configFilePath)) {
+            return JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
+        }
+    } catch (e) {}
+    return {};
+}
+
+function saveConfig(update) {
+    try {
+        const current = loadConfig();
+        fs.writeFileSync(configFilePath, JSON.stringify({ ...current, ...update }, null, 2));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+ipcMain.handle('getAppConfig', async () => loadConfig());
+ipcMain.handle('saveAppConfig', async (event, update) => saveConfig(update));
+
+// ─── Project Type Detection ────────────────────────────────────────────────────
+function detectProjectType(folderPath) {
+    let files = [];
+    try { files = fs.readdirSync(folderPath).map(f => f.toLowerCase()); } catch (e) { return 'generic'; }
+
+    if (files.includes('package.json')) {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(path.join(folderPath, 'package.json'), 'utf-8'));
+            const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+            if (deps['react'] || deps['react-dom'] || deps['next']) return 'react';
+            if (deps['vue'] || deps['nuxt'])    return 'vue';
+            if (deps['@angular/core'])          return 'angular';
+            if (deps['svelte'])                 return 'svelte';
+            if (deps['electron'])               return 'electron';
+        } catch (e) {}
+        return 'node';
+    }
+    if (files.some(f => ['requirements.txt','setup.py','pipfile','pyproject.toml','setup.cfg'].includes(f))) return 'python';
+    if (files.includes('pom.xml'))                                 return 'java';
+    if (files.includes('build.gradle') || files.includes('build.gradle.kts')) return 'java';
+    if (files.includes('go.mod'))                                  return 'go';
+    if (files.includes('cargo.toml'))                              return 'rust';
+    if (files.includes('gemfile'))                                 return 'ruby';
+    if (files.includes('composer.json'))                           return 'php';
+    if (files.includes('cmakelists.txt') ||
+        files.some(f => f.endsWith('.c') || f.endsWith('.cpp') || f.endsWith('.h'))) return 'cpp';
+    if (files.some(f => f.endsWith('.xcodeproj') || f.endsWith('.xcworkspace'))) return 'swift';
+    if (files.includes('projectsettings') ||
+        files.some(f => f.endsWith('.unity'))) return 'unity';
+    return 'generic';
+}
+
+ipcMain.handle('detectProjectType', async (event, folderPath) => {
+    try {
+        return { success: true, type: detectProjectType(folderPath) };
+    } catch (e) {
+        return { success: false, type: 'generic', error: e.message };
+    }
+});
+
+ipcMain.handle('createGitignore', async (event, { folderPath, projectType }) => {
+    try {
+        const gitignorePath = path.join(folderPath, '.gitignore');
+        if (fs.existsSync(gitignorePath)) {
+            return { success: false, existed: true, error: '.gitignore already exists' };
+        }
+        const content = GITIGNORE_TEMPLATES[projectType] || GITIGNORE_TEMPLATES.generic;
+        fs.writeFileSync(gitignorePath, content, 'utf-8');
+        return { success: true, type: projectType };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
+// ─── Built-in .gitignore Templates ────────────────────────────────────────────
+const GITIGNORE_TEMPLATES = {
+    node: `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+.output/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    react: `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Build
+build/
+dist/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    vue: `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Build
+dist/
+.output/
+.nuxt/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    angular: `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Build
+dist/
+tmp/
+out-tsc/
+
+# Environment
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    electron: `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Build
+dist/
+build/
+out/
+release/
+
+# Environment
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    python: `# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Environment
+.env
+.env.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    java: `# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Build output
+target/
+build/
+out/
+
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.eclipse
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    go: `# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output
+*.out
+dist/
+bin/
+
+# Go workspace
+go.work
+
+# Environment
+.env
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    rust: `# Compiled files
+target/
+Cargo.lock
+
+# Environment
+.env
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    ruby: `# Ruby/Rails
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Bundler
+.bundle/
+vendor/bundle
+
+# Rails
+log/
+tmp/
+db/*.sqlite3
+public/system
+public/uploads
+
+# Environment
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    php: `# Composer
+vendor/
+composer.lock
+
+# Laravel / Symfony
+.env
+.env.local
+.env.*.local
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+
+# Build
+dist/
+build/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    cpp: `# Build output
+build/
+dist/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.out
+*.app
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE
+.vscode/
+.idea/
+*.vcxproj.user
+*.suo
+*.sdf
+*.opensdf
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    swift: `# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+DerivedData/
+*.hmap
+*.ipa
+*.xcarchive
+build/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    unity: `# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Visual Studio
+.vs/
+ExportedObj/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# OS
+.DS_Store
+Thumbs.db
+`,
+    generic: `# Build output
+dist/
+build/
+out/
+
+# Dependencies
+vendor/
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+`
+};

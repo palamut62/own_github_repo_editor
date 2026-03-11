@@ -1119,7 +1119,7 @@
         <!-- ═══ ADD PROJECT VIEW ═════════════════════════════════════════════ -->
         <div id="view-addProject" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden; padding: 0 30px 20px;">
             <!-- Toolbar -->
-            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; flex-wrap: wrap;">
                 <button class="btn-primary" onclick="selectProjectFolders(false)">📂 Select Folder</button>
                 <button class="btn-primary" style="background: var(--accent-blue);" onclick="selectProjectFolders(true)">📂 Select Multiple</button>
                 <div style="flex:1;"></div>
@@ -1127,8 +1127,25 @@
                 <button class="btn-primary" style="background: var(--accent-green); padding: 8px 20px;" id="btnCreatePush" onclick="startCreateAndPush()" disabled>🚀 Create &amp; Push</button>
             </div>
 
+            <!-- Commit Template Bar -->
+            <div style="display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); flex-shrink: 0; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); white-space:nowrap;">Commit Template:</span>
+                <select id="commitTemplateSelect" class="input-dark" style="min-width:180px;" onchange="onCommitTemplateChange()">
+                    <option value="simple">Simple — "Initial commit"</option>
+                    <option value="conventional">Conventional — "feat: initial project setup"</option>
+                    <option value="scoped">Scoped — "feat({{project_name}}): initial setup"</option>
+                    <option value="custom">Custom…</option>
+                </select>
+                <input type="text" id="commitTemplateCustomInput" class="input-dark"
+                    placeholder='e.g. feat: {{project_name}} initial setup'
+                    style="flex:1; min-width:220px; display:none;"
+                    oninput="syncCommitTemplateToRows()">
+                <span id="commitTemplatePreview" style="font-size:11px; color:var(--text-secondary); font-style:italic;"></span>
+                <button class="btn-dark" style="font-size:11px; padding:5px 10px; white-space:nowrap;" onclick="saveCurrentCommitTemplate()">💾 Save Default</button>
+            </div>
+
             <!-- Folder Table -->
-            <div style="flex: 1; overflow-y: auto; margin-top: 16px;" id="addProjectTableWrap">
+            <div style="flex: 1; overflow-y: auto; margin-top: 12px;" id="addProjectTableWrap">
                 <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;" id="addProjEmpty">
                     No folders selected. Click "Select Folder" to get started.
                 </div>
@@ -1137,11 +1154,12 @@
                         <tr>
                             <th><input type="checkbox" id="pubSelectAll" onclick="togglePubSelectAll()"></th>
                             <th>Folder</th>
-                            <th>Path</th>
                             <th>Git</th>
                             <th>Repo Name</th>
                             <th>Visibility</th>
                             <th>Description</th>
+                            <th title="Auto-generate .gitignore based on detected project type">.gitignore</th>
+                            <th>Commit Message</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -1240,17 +1258,57 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
-        <div class="modal-box" style="position: relative; padding-top: 36px;">
+        <div class="modal-box" style="position: relative; padding-top: 36px; max-width: 520px; width: 90%;">
             <div onclick="document.getElementById('settingsModal').style.display='none'"
                 style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
             </div>
             <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
-            <label>GitHub Token:</label>
+
+            <!-- API Keys Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">API Keys</div>
+            <label style="font-size:12px;">GitHub Token:</label>
             <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
-            <label>OpenRouter Key:</label>
+            <label style="font-size:12px;">OpenRouter Key:</label>
             <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
-            <div style="text-align: right; gap: 10px; margin-top: 15px;">
-                <button class="btn-primary" onclick="saveSettings()">Save</button>
+
+            <!-- Defaults Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Publish Defaults</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size:12px; display:block; margin-bottom:4px;">Default Visibility:</label>
+                    <select id="settingsDefaultVisibility" class="input-dark" style="width:100%; padding:8px;">
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:12px; display:block; margin-bottom:4px;">Default Branch:</label>
+                    <select id="settingsDefaultBranch" class="input-dark" style="width:100%; padding:8px;">
+                        <option value="main">main</option>
+                        <option value="master">master</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <input type="checkbox" id="settingsAutoGitignore" style="cursor:pointer; transform:scale(1.1);">
+                <label for="settingsAutoGitignore" style="font-size:12px; cursor:pointer;">Auto-generate .gitignore by default</label>
+            </div>
+
+            <!-- Commit Template Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Default Commit Template</div>
+            <select id="settingsCommitTemplate" class="input-dark" style="width:100%; padding:8px; margin-bottom:8px;" onchange="onSettingsTemplateChange()">
+                <option value="simple">Simple — "Initial commit"</option>
+                <option value="conventional">Conventional Commits — "feat: initial project setup"</option>
+                <option value="scoped">Scoped — "feat({{project_name}}): initial setup"</option>
+                <option value="custom">Custom…</option>
+            </select>
+            <input type="text" id="settingsCommitCustom" class="auth-input"
+                placeholder='e.g. feat: {{project_name}} initial setup  (use {{project_name}} for repo name)'
+                style="display:none; margin-bottom:4px;">
+            <div style="font-size:11px; color:var(--text-secondary);">Use <code style="background:var(--bg-input); padding:1px 5px; border-radius:3px;">{{project_name}}</code> as a placeholder for the repository name.</div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
     </div>
@@ -1829,6 +1887,22 @@
         document.addEventListener('DOMContentLoaded', async () => {
             switchView('list'); // ensure repo grid default card layout
             showView('dashboard');
+
+            // Load saved app config
+            const config = await window.api.getAppConfig();
+            if (config.commitTemplateType) {
+                currentCommitTemplateType   = config.commitTemplateType;
+                currentCommitTemplateCustom = config.commitTemplateCustom || '';
+                const sel = document.getElementById('commitTemplateSelect');
+                if (sel) {
+                    sel.value = currentCommitTemplateType;
+                    const customInput = document.getElementById('commitTemplateCustomInput');
+                    customInput.value = currentCommitTemplateCustom;
+                    customInput.style.display = currentCommitTemplateType === 'custom' ? 'block' : 'none';
+                    updateCommitTemplatePreview();
+                }
+            }
+
             // Auto load dashboard if token exists
             const token = await window.api.getToken();
             if (token) {
@@ -2043,7 +2117,25 @@
             const k = await window.api.getRouterKey();
             document.getElementById('settingsToken').value = t || '';
             document.getElementById('settingsRouterKey').value = k || '';
+
+            // Load app config defaults
+            const config = await window.api.getAppConfig();
+            document.getElementById('settingsDefaultVisibility').value = config.defaultVisibility || 'public';
+            document.getElementById('settingsDefaultBranch').value     = config.defaultBranch || 'main';
+            document.getElementById('settingsAutoGitignore').checked   = config.autoGitignore !== false;
+
+            const tmplType   = config.commitTemplateType || 'simple';
+            const tmplCustom = config.commitTemplateCustom || '';
+            document.getElementById('settingsCommitTemplate').value  = tmplType;
+            document.getElementById('settingsCommitCustom').value    = tmplCustom;
+            document.getElementById('settingsCommitCustom').style.display = tmplType === 'custom' ? 'block' : 'none';
+
             document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function onSettingsTemplateChange() {
+            const sel = document.getElementById('settingsCommitTemplate').value;
+            document.getElementById('settingsCommitCustom').style.display = sel === 'custom' ? 'block' : 'none';
         }
 
         async function saveSettings() {
@@ -2051,6 +2143,29 @@
             const k = document.getElementById('settingsRouterKey').value;
             await window.api.saveToken(t);
             await window.api.saveRouterKey(k);
+
+            // Save app config
+            const tmplType   = document.getElementById('settingsCommitTemplate').value;
+            const tmplCustom = document.getElementById('settingsCommitCustom').value;
+            await window.api.saveAppConfig({
+                defaultVisibility:    document.getElementById('settingsDefaultVisibility').value,
+                defaultBranch:        document.getElementById('settingsDefaultBranch').value,
+                autoGitignore:        document.getElementById('settingsAutoGitignore').checked,
+                commitTemplateType:   tmplType,
+                commitTemplateCustom: tmplCustom
+            });
+
+            // Sync commit template to Add Project view
+            currentCommitTemplateType   = tmplType;
+            currentCommitTemplateCustom = tmplCustom;
+            const sel = document.getElementById('commitTemplateSelect');
+            if (sel) {
+                sel.value = tmplType;
+                document.getElementById('commitTemplateCustomInput').value = tmplCustom;
+                document.getElementById('commitTemplateCustomInput').style.display = tmplType === 'custom' ? 'block' : 'none';
+                updateCommitTemplatePreview();
+            }
+
             document.getElementById('settingsModal').style.display = 'none';
             showToast('Settings saved!', 'success');
         }
@@ -3216,18 +3331,97 @@ npm start</pre>
         // ════════════════════════════════════════════════════════════════════
         let projectFolders = []; // [{ folderPath, folderName, hasGit, suggestedName, repoName, visibility, description, status }]
 
+        // Commit template state
+        let currentCommitTemplateType = 'simple';
+        let currentCommitTemplateCustom = '';
+
+        const COMMIT_TEMPLATES = {
+            simple:       () => 'Initial commit',
+            conventional: () => 'feat: initial project setup',
+            scoped:       (name) => `feat(${name || 'project'}): initial setup`,
+            custom:       (name) => (currentCommitTemplateCustom || 'Initial commit').replace(/{{project_name}}/g, name || 'project')
+        };
+
+        function resolveCommitTemplate(repoName) {
+            const fn = COMMIT_TEMPLATES[currentCommitTemplateType] || COMMIT_TEMPLATES.simple;
+            return fn(repoName);
+        }
+
+        function onCommitTemplateChange() {
+            const sel = document.getElementById('commitTemplateSelect');
+            const customInput = document.getElementById('commitTemplateCustomInput');
+            currentCommitTemplateType = sel.value;
+            customInput.style.display = currentCommitTemplateType === 'custom' ? 'block' : 'none';
+            currentCommitTemplateCustom = customInput.value;
+            updateCommitTemplatePreview();
+            syncCommitTemplateToRows();
+        }
+
+        function syncCommitTemplateToRows() {
+            currentCommitTemplateCustom = document.getElementById('commitTemplateCustomInput').value;
+            updateCommitTemplatePreview();
+            projectFolders.forEach((f, i) => {
+                const input = document.getElementById(`commitMsg${i}`);
+                if (input) {
+                    const newMsg = resolveCommitTemplate(f.repoName);
+                    input.value = newMsg;
+                    f.commitMessage = newMsg;
+                }
+            });
+        }
+
+        function updateCommitPreviewRow(idx) {
+            // Recompute commit message for a specific row if it hasn't been manually edited
+            const f = projectFolders[idx];
+            if (!f) return;
+            const input = document.getElementById(`commitMsg${idx}`);
+            if (input) {
+                const newMsg = resolveCommitTemplate(f.repoName);
+                input.value = newMsg;
+                f.commitMessage = newMsg;
+            }
+        }
+
+        function updateCommitTemplatePreview() {
+            const preview = document.getElementById('commitTemplatePreview');
+            if (preview) {
+                const example = resolveCommitTemplate('my-project');
+                preview.textContent = `Preview: "${example}"`;
+            }
+        }
+
+        async function saveCurrentCommitTemplate() {
+            await window.api.saveAppConfig({
+                commitTemplateType: currentCommitTemplateType,
+                commitTemplateCustom: currentCommitTemplateCustom
+            });
+            showToast('Commit template saved as default.', 'success');
+        }
+
         async function selectProjectFolders(multiple) {
             const folders = await window.api.selectFolders({ multiple });
             if (!folders || folders.length === 0) return;
 
+            // Load defaults from config
+            const config = await window.api.getAppConfig();
+            const defaultVis    = config.defaultVisibility || 'public';
+            const autoGitignore = config.autoGitignore !== false;
+
             // Merge new folders (avoid duplicates by folderPath)
             for (const f of folders) {
                 if (!projectFolders.find(p => p.folderPath === f.folderPath)) {
+                    // Detect project type asynchronously
+                    const typeResult = await window.api.detectProjectType(f.folderPath);
+                    const detectedType = typeResult.type || 'generic';
+
                     projectFolders.push({
                         ...f,
                         repoName: f.suggestedName,
-                        visibility: 'public',
+                        visibility: defaultVis,
                         description: '',
+                        autoGitignore,
+                        detectedType,
+                        commitMessage: resolveCommitTemplate(f.suggestedName),
                         status: 'pending'
                     });
                 }
@@ -3259,19 +3453,39 @@ npm start</pre>
                     ? '<span style="color:var(--accent-green);font-size:11px;">✓ Git</span>'
                     : '<span style="color:var(--accent-yellow);font-size:11px;">⊕ Init</span>';
 
+                const detectedLabel = f.detectedType
+                    ? `<span style="font-size:10px; color:var(--accent-blue);">${f.detectedType}</span>`
+                    : '';
+
+                const gitignoreChecked = f.autoGitignore !== false ? 'checked' : '';
+
                 return `<tr id="pubRow${i}">
                     <td><input type="checkbox" class="pubCheck" data-idx="${i}" checked></td>
-                    <td><strong>${escHtml(f.folderName)}</strong></td>
-                    <td style="font-size:11px; color:var(--text-secondary); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escHtml(f.folderPath)}">${escHtml(f.folderPath)}</td>
+                    <td>
+                        <strong>${escHtml(f.folderName)}</strong>
+                        <div style="font-size:10px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${escHtml(f.folderPath)}">${escHtml(f.folderPath)}</div>
+                    </td>
                     <td>${gitBadge}</td>
-                    <td><input type="text" value="${escHtml(f.repoName)}" onchange="updateProjField(${i},'repoName',this.value)" style="min-width:120px;"></td>
+                    <td><input type="text" value="${escHtml(f.repoName)}" onchange="updateProjField(${i},'repoName',this.value); updateCommitPreviewRow(${i});" style="min-width:110px;"></td>
                     <td>
                         <select onchange="updateProjField(${i},'visibility',this.value)">
                             <option value="public" ${f.visibility==='public'?'selected':''}>Public</option>
                             <option value="private" ${f.visibility==='private'?'selected':''}>Private</option>
                         </select>
                     </td>
-                    <td><input type="text" value="${escHtml(f.description)}" placeholder="Optional description…" onchange="updateProjField(${i},'description',this.value)"></td>
+                    <td><input type="text" value="${escHtml(f.description)}" placeholder="Optional…" onchange="updateProjField(${i},'description',this.value)" style="min-width:100px;"></td>
+                    <td style="text-align:center;">
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+                            <input type="checkbox" ${gitignoreChecked} onchange="updateProjField(${i},'autoGitignore',this.checked)"
+                                title="Auto-generate .gitignore" style="cursor:pointer; transform:scale(1.1);">
+                            ${detectedLabel}
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" id="commitMsg${i}" value="${escHtml(f.commitMessage || resolveCommitTemplate(f.repoName))}"
+                            onchange="updateProjField(${i},'commitMessage',this.value)"
+                            style="min-width:160px; font-size:11px;" placeholder="commit message…">
+                    </td>
                     <td>${statusChip}</td>
                 </tr>`;
             }).join('');
@@ -3359,7 +3573,9 @@ npm start</pre>
                     folderPath: r.folderPath,
                     repoName: r.repoName.trim(),
                     visibility: r.visibility,
-                    description: r.description
+                    description: r.description,
+                    autoGitignore: r.autoGitignore !== false,
+                    commitMessage: r.commitMessage || resolveCommitTemplate(r.repoName)
                 }))
             });
 
