@@ -702,6 +702,169 @@
         .confirm-btn-danger:hover {
             filter: brightness(1.1);
         }
+
+        /* ── View sections ──────────────────────────────────────────────────── */
+        .view-section {
+            display: none;
+        }
+
+        /* ── Dashboard Stats ────────────────────────────────────────────────── */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+
+        .stat-icon { font-size: 22px; margin-bottom: 8px; }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Publish Table (Add Project & Fork Sync) ─────────────────────────── */
+        .pub-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .pub-table th {
+            background: var(--bg-card);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .pub-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+
+        .pub-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .pub-table input[type="text"],
+        .pub-table select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .pub-table input[type="text"]:focus,
+        .pub-table select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* ── Publish Log ─────────────────────────────────────────────────────── */
+        .publish-log {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 160px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+
+        .log-success { color: var(--accent-green); }
+        .log-error   { color: var(--danger); }
+        .log-info    { color: var(--accent-blue); }
+        .log-warn    { color: var(--accent-yellow); }
+
+        /* ── History List ─────────────────────────────────────────────────────── */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .history-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-success { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+        .badge-error   { background: rgba(248,81,73,0.15); color: var(--danger); }
+        .badge-synced  { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .badge-conflict{ background: rgba(210,153,34,0.15); color: var(--accent-yellow); }
+
+        /* ── Status chips ─────────────────────────────────────────────────────── */
+        .status-chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .chip-pending  { background: rgba(170,170,170,0.15); color: var(--text-secondary); }
+        .chip-running  { background: rgba(88,166,255,0.15);  color: var(--accent-blue); }
+        .chip-success  { background: rgba(63,185,80,0.15);   color: var(--accent-green); }
+        .chip-error    { background: rgba(248,81,73,0.15);   color: var(--danger); }
+        .chip-synced   { background: rgba(139,92,246,0.15);  color: #a78bfa; }
+        .chip-conflict { background: rgba(210,153,34,0.15);  color: var(--accent-yellow); }
+        .chip-not-eligible { background: rgba(170,170,170,0.15); color: var(--text-secondary); }
+        .chip-permission-error { background: rgba(248,81,73,0.15); color: var(--danger); }
     </style>
 </head>
 
@@ -732,23 +895,46 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+        <!-- Primary Navigation -->
         <div class="sidebar-header">
-            <div class="nav-title">Browse</div>
-            <div class="nav-item active" id="navAll" onclick="applyFilter('all')">
-                <span>📁 All Repos</span>
+            <div class="nav-title">Navigation</div>
+            <div class="nav-item active" id="navDashboard" onclick="showView('dashboard')">
+                <span>🏠 Dashboard</span>
+            </div>
+            <div class="nav-item" id="navAddProject" onclick="showView('addProject')">
+                <span>➕ Add Project</span>
+            </div>
+            <div class="nav-item" id="navRepos" onclick="showView('repos'); applyFilter('all')">
+                <span>📁 Repositories</span>
                 <span class="nav-badge" id="countAll">0</span>
             </div>
-            <div class="nav-item" id="navSource" onclick="applyFilter('source')">
-                <span>🌿 Sources</span>
-                <span class="nav-badge" id="countSource">0</span>
-            </div>
-            <div class="nav-item" id="navFork" onclick="applyFilter('fork')">
-                <span>🔀 Forks</span>
+            <div class="nav-item" id="navForkSync" onclick="showView('forkSync')">
+                <span>🔀 Fork Sync</span>
                 <span class="nav-badge" id="countFork">0</span>
+            </div>
+            <div class="nav-item" id="navHistory" onclick="showView('history')">
+                <span>📋 History</span>
             </div>
         </div>
 
         <div class="sidebar-content">
+            <!-- Repo sub-filters (shown when Repositories view is active) -->
+            <div class="nav-group" id="repoFiltersGroup" style="display:none;">
+                <div class="nav-title">Filter</div>
+                <div class="nav-item" id="navAll" onclick="applyFilter('all')">
+                    <span>📁 All</span>
+                    <span class="nav-badge" id="countAllSub">0</span>
+                </div>
+                <div class="nav-item" id="navSource" onclick="applyFilter('source')">
+                    <span>🌿 Sources</span>
+                    <span class="nav-badge" id="countSource">0</span>
+                </div>
+                <div class="nav-item" id="navForkFilter" onclick="applyFilter('fork')">
+                    <span>🔀 Forks</span>
+                    <span class="nav-badge" id="countForkSub">0</span>
+                </div>
+            </div>
+
             <div class="nav-group">
                 <div class="nav-title">Actions</div>
                 <div class="nav-item" onclick="startAIRename()">
@@ -796,13 +982,13 @@
                 <div class="nav-item" onclick="openRepoAnalyzerModal()">
                     <span>🔍 Repo Inspector</span>
                 </div>
-                <div class="nav-item" onclick="filterStaleRepos()">
+                <div class="nav-item" onclick="showView('repos'); filterStaleRepos()">
                     <span>🕐 Stale Repos</span>
                 </div>
-                <div class="nav-item" onclick="filterLargeRepos()">
+                <div class="nav-item" onclick="showView('repos'); filterLargeRepos()">
                     <span>💾 Large Repos</span>
                 </div>
-                <div class="nav-item" onclick="filterUnchangedForks()">
+                <div class="nav-item" onclick="showView('repos'); filterUnchangedForks()">
                     <span>🍴 Unused Forks</span>
                 </div>
             </div>
@@ -838,8 +1024,8 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <div class="page-title" id="pageTitle">All Repositories</div>
-            <div class="search-bar">
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="search-bar" id="repoSearchBar" style="display:none;">
                 <div
                     style="display: flex; background: var(--bg-input); border-radius: 6px; border: 1px solid var(--border-color); margin-right: 10px;">
                     <button class="view-btn active" id="btnViewList" onclick="switchView('list')"
@@ -848,7 +1034,7 @@
                     </button>
                     <button class="view-btn" id="btnViewGrid" onclick="switchView('grid')"
                         style="background:none; border:none; padding: 6px 10px; cursor: pointer;">
-                        grid
+                        ⊞
                     </button>
                 </div>
                 <div
@@ -874,35 +1060,180 @@
 
         <div id="status" style="padding: 0 30px; color: var(--accent-yellow); font-size: 13px; height: 20px;"></div>
 
-        <!-- Warning Banner -->
-        <div
-            style="margin: 10px 30px; padding: 12px 16px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 152, 0, 0.1)); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 20px;">⚠️</span>
-            <div style="flex: 1;">
-                <div style="font-weight: 600; font-size: 12px; color: var(--accent-yellow); margin-bottom: 2px;">
-                    Warning!
+        <!-- ═══ DASHBOARD VIEW ═══════════════════════════════════════════════ -->
+        <div id="view-dashboard" class="view-section" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; padding: 0 30px 30px;">
+            <!-- Stats Cards -->
+            <div class="dash-grid" id="dashStatsGrid">
+                <div class="stat-card" onclick="showView('repos'); applyFilter('all')">
+                    <div class="stat-icon">📁</div>
+                    <div class="stat-value" id="dashTotalRepos">—</div>
+                    <div class="stat-label">Total Repos</div>
                 </div>
-                <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">This app can permanently
-                    delete or modify repositories. Make sure to backup before making changes. Deleted repos cannot be
-                    recovered!</div>
+                <div class="stat-card" onclick="showView('repos'); applyFilter('source')">
+                    <div class="stat-icon">🌿</div>
+                    <div class="stat-value" id="dashSources">—</div>
+                    <div class="stat-label">Source Repos</div>
+                </div>
+                <div class="stat-card" onclick="showView('forkSync')">
+                    <div class="stat-icon">🔀</div>
+                    <div class="stat-value" id="dashForks">—</div>
+                    <div class="stat-label">Forks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔐</div>
+                    <div class="stat-value" id="dashPrivate">—</div>
+                    <div class="stat-label">Private</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🌍</div>
+                    <div class="stat-value" id="dashPublic">—</div>
+                    <div class="stat-label">Public</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🕐</div>
+                    <div class="stat-value" id="dashStale">—</div>
+                    <div class="stat-label">Stale (&gt;6mo)</div>
+                </div>
             </div>
-            <button onclick="this.parentElement.style.display='none'"
-                style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0.6;">✕</button>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 24px;">
+                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px;">Quick Actions</div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px;" onclick="showView('addProject')">➕ Add Project</button>
+                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px; background: var(--accent-blue);" onclick="showView('repos'); loadRepos()">📁 View Repos</button>
+                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px; background: #8b5cf6;" onclick="showView('forkSync'); loadForkSyncView()">🔀 Fork Sync</button>
+                    <button class="btn-dark" style="padding: 10px 20px; font-size: 13px;" onclick="loadDashboard()">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <!-- Recent Operations -->
+            <div style="margin-top: 28px;">
+                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px;">Recent Operations</div>
+                <div id="dashRecentOps" class="history-list">
+                    <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">No recent operations.</div>
+                </div>
+            </div>
         </div>
 
-        <div id="repoGrid" class="repo-grid">
-            <!-- Cards go here -->
-            <div style="grid-column: 1/-1; text-align: center; margin-top: 50px; color: var(--text-secondary);">
-                <h3>No Repositories Loaded</h3>
-                <p>Click "Reload" to fetch your repositories.</p>
+        <!-- ═══ ADD PROJECT VIEW ═════════════════════════════════════════════ -->
+        <div id="view-addProject" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden; padding: 0 30px 20px;">
+            <!-- Toolbar -->
+            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <button class="btn-primary" onclick="selectProjectFolders(false)">📂 Select Folder</button>
+                <button class="btn-primary" style="background: var(--accent-blue);" onclick="selectProjectFolders(true)">📂 Select Multiple</button>
+                <div style="flex:1;"></div>
+                <span style="font-size: 12px; color: var(--text-secondary);" id="addProjStatus"></span>
+                <button class="btn-primary" style="background: var(--accent-green); padding: 8px 20px;" id="btnCreatePush" onclick="startCreateAndPush()" disabled>🚀 Create &amp; Push</button>
+            </div>
+
+            <!-- Folder Table -->
+            <div style="flex: 1; overflow-y: auto; margin-top: 16px;" id="addProjectTableWrap">
+                <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;" id="addProjEmpty">
+                    No folders selected. Click "Select Folder" to get started.
+                </div>
+                <table class="pub-table" id="addProjectTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="pubSelectAll" onclick="togglePubSelectAll()"></th>
+                            <th>Folder</th>
+                            <th>Path</th>
+                            <th>Git</th>
+                            <th>Repo Name</th>
+                            <th>Visibility</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="addProjectTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Progress Log -->
+            <div style="flex-shrink:0; margin-top: 16px;">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Progress Log</span>
+                    <button onclick="document.getElementById('publishLog').innerHTML=''" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:11px;">Clear</button>
+                </div>
+                <div id="publishLog" class="publish-log"></div>
             </div>
         </div>
 
-        <div class="footer-controls" id="paginationBar" style="display:none;">
-            <button class="btn-dark" onclick="changePage(-1)">« Previous</button>
-            <span style="color: var(--text-secondary); font-size: 14px;" id="pageInfo">Page 1 / 1</span>
-            <button class="btn-dark" onclick="changePage(1)">Next »</button>
+        <!-- ═══ REPOSITORIES VIEW ════════════════════════════════════════════ -->
+        <div id="view-repos" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+            <!-- Warning Banner -->
+            <div id="warnBanner"
+                style="margin: 0 30px 10px 30px; padding: 12px 16px; background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 152, 0, 0.1)); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; display: flex; align-items: center; gap: 12px; flex-shrink:0;">
+                <span style="font-size: 20px;">⚠️</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 12px; color: var(--accent-yellow); margin-bottom: 2px;">Warning!</div>
+                    <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">This app can permanently delete or modify repositories. Deleted repos cannot be recovered!</div>
+                </div>
+                <button onclick="document.getElementById('warnBanner').style.display='none'"
+                    style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0.6;">✕</button>
+            </div>
+
+            <div id="repoGrid" class="repo-grid">
+                <div style="grid-column: 1/-1; text-align: center; margin-top: 50px; color: var(--text-secondary);">
+                    <h3>No Repositories Loaded</h3>
+                    <p>Click "Reload" to fetch your repositories.</p>
+                </div>
+            </div>
+
+            <div class="footer-controls" id="paginationBar" style="display:none;">
+                <button class="btn-dark" onclick="changePage(-1)">« Previous</button>
+                <span style="color: var(--text-secondary); font-size: 14px;" id="pageInfo">Page 1 / 1</span>
+                <button class="btn-dark" onclick="changePage(1)">Next »</button>
+            </div>
         </div>
+
+        <!-- ═══ FORK SYNC VIEW ════════════════════════════════════════════════ -->
+        <div id="view-forkSync" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden; padding: 0 30px 20px;">
+            <!-- Toolbar -->
+            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <button class="btn-primary" onclick="loadForkSyncView()">🔄 Refresh Forks</button>
+                <button class="btn-primary" style="background: #8b5cf6;" id="btnSyncAll" onclick="syncSelectedForks()" disabled>🔀 Sync Selected</button>
+                <div style="flex:1;"></div>
+                <span id="forkSyncStatus" style="font-size: 12px; color: var(--text-secondary);"></span>
+            </div>
+
+            <!-- Fork Table -->
+            <div style="flex: 1; overflow-y: auto; margin-top: 16px;">
+                <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;" id="forkSyncEmpty">
+                    Click "Refresh Forks" to load your forked repositories.
+                </div>
+                <table class="pub-table" id="forkSyncTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="forkSelectAll" onclick="toggleForkSelectAll()"></th>
+                            <th>Repository</th>
+                            <th>Upstream</th>
+                            <th>Default Branch</th>
+                            <th>Last Updated</th>
+                            <th>Sync Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forkSyncTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══ HISTORY VIEW ══════════════════════════════════════════════════ -->
+        <div id="view-history" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden; padding: 0 30px 20px;">
+            <!-- Toolbar -->
+            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <button class="btn-primary" onclick="loadHistoryView()">🔄 Refresh</button>
+                <button class="btn-dark" style="color: var(--danger); border-color: var(--danger);" onclick="confirmClearHistory()">🗑️ Clear History</button>
+            </div>
+
+            <div style="flex: 1; overflow-y: auto; margin-top: 16px;" id="historyContent">
+                <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;">
+                    No operation history.
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- MODALS -->
@@ -1437,12 +1768,74 @@
         let itemsPerPage = 10;
         let currentView = 'list'; // Default list
         let renameProposals = [];
+        let currentMainView = 'dashboard'; // tracks the active main view
+
+        // ── showView: switch between Dashboard / AddProject / Repos / ForkSync / History ──
+        function showView(viewName) {
+            currentMainView = viewName;
+
+            // Hide all view sections
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Hide repo search bar by default
+            document.getElementById('repoSearchBar').style.display = 'none';
+            document.getElementById('repoFiltersGroup').style.display = 'none';
+
+            // Update top-level nav active state
+            ['navDashboard','navAddProject','navRepos','navForkSync','navHistory'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+
+            const titles = {
+                dashboard:  '🏠 Dashboard',
+                addProject: '➕ Add Project',
+                repos:      '📁 Repositories',
+                forkSync:   '🔀 Fork Sync',
+                history:    '📋 History'
+            };
+            document.getElementById('pageTitle').innerText = titles[viewName] || viewName;
+
+            switch (viewName) {
+                case 'dashboard':
+                    document.getElementById('view-dashboard').style.display = 'flex';
+                    document.getElementById('navDashboard').classList.add('active');
+                    break;
+                case 'addProject':
+                    document.getElementById('view-addProject').style.display = 'flex';
+                    document.getElementById('navAddProject').classList.add('active');
+                    break;
+                case 'repos':
+                    document.getElementById('view-repos').style.display = 'flex';
+                    document.getElementById('repoSearchBar').style.display = 'flex';
+                    document.getElementById('repoFiltersGroup').style.display = 'block';
+                    document.getElementById('navRepos').classList.add('active');
+                    break;
+                case 'forkSync':
+                    document.getElementById('view-forkSync').style.display = 'flex';
+                    document.getElementById('navForkSync').classList.add('active');
+                    break;
+                case 'history':
+                    document.getElementById('view-history').style.display = 'flex';
+                    document.getElementById('navHistory').classList.add('active');
+                    loadHistoryView();
+                    break;
+            }
+        }
 
         // Init
         document.addEventListener('DOMContentLoaded', async () => {
-            // Load Settings if needed, layout is ready
-            document.getElementById('status').innerText = 'Ready. Load repos to start.';
-            switchView('list'); // ensure default
+            switchView('list'); // ensure repo grid default card layout
+            showView('dashboard');
+            // Auto load dashboard if token exists
+            const token = await window.api.getToken();
+            if (token) {
+                loadDashboard();
+            } else {
+                document.getElementById('status').innerText = 'No token found. Please open Settings.';
+            }
         });
 
         // --- View Logic ---
@@ -1471,14 +1864,17 @@
             currentFilter = type;
             currentPage = 1;
 
-            // Nav Active State
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if (type === 'all') document.getElementById('navAll').classList.add('active');
-            if (type === 'source') document.getElementById('navSource').classList.add('active');
-            if (type === 'fork') document.getElementById('navFork').classList.add('active');
+            // Sub-filter active state (only within repos view)
+            ['navAll','navSource','navForkFilter'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+            if (type === 'all' && document.getElementById('navAll')) document.getElementById('navAll').classList.add('active');
+            if (type === 'source' && document.getElementById('navSource')) document.getElementById('navSource').classList.add('active');
+            if (type === 'fork' && document.getElementById('navForkFilter')) document.getElementById('navForkFilter').classList.add('active');
 
             // Title
-            document.getElementById('pageTitle').innerText = type === 'all' ? 'All Repositories' : (type === 'source' ? 'Source Repositories' : 'Forked Repositories');
+            document.getElementById('pageTitle').innerText = type === 'all' ? '📁 Repositories' : (type === 'source' ? '🌿 Source Repositories' : '🔀 Forked Repositories');
 
             // Filter Data
             if (type === 'all') filteredRepos = [...allRepos];
@@ -1617,6 +2013,9 @@
             const token = await window.api.getToken();
             if (!token) { openSettings(); return; }
 
+            // Switch to repos view if not already there
+            if (currentMainView !== 'repos') showView('repos');
+
             document.getElementById('status').innerText = 'Loading...';
             const res = await window.api.getRepos(token);
 
@@ -1624,10 +2023,13 @@
                 allRepos = res.data;
                 document.getElementById('status').innerText = '';
 
-                // Update Counts
-                document.getElementById('countAll').innerText = allRepos.length;
-                document.getElementById('countSource').innerText = allRepos.filter(r => !r.fork).length;
-                document.getElementById('countFork').innerText = allRepos.filter(r => r.fork).length;
+                // Update Counts (sidebar badges)
+                const forkCount = allRepos.filter(r => r.fork).length;
+                document.getElementById('countAll').innerText    = allRepos.length;
+                document.getElementById('countFork').innerText   = forkCount;
+                document.getElementById('countAllSub').innerText  = allRepos.length;
+                document.getElementById('countSource').innerText  = allRepos.filter(r => !r.fork).length;
+                document.getElementById('countForkSub').innerText = forkCount;
 
                 applyFilter(currentFilter);
             } else {
@@ -2739,6 +3141,452 @@ npm start</pre>
                 showToast(`Downloaded ${filename}`, 'success');
             }
         }
+        // ════════════════════════════════════════════════════════════════════
+        // DASHBOARD
+        // ════════════════════════════════════════════════════════════════════
+        async function loadDashboard() {
+            const token = await window.api.getToken();
+            if (!token) {
+                showToast('Please save a GitHub token in Settings first.', 'warning');
+                return;
+            }
+
+            // Show loading state
+            ['dashTotalRepos','dashSources','dashForks','dashPrivate','dashPublic','dashStale'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = '…';
+            });
+
+            document.getElementById('status').innerText = 'Loading dashboard…';
+
+            const result = await window.api.getDashboardStats(token);
+
+            document.getElementById('status').innerText = '';
+
+            if (!result.success) {
+                showToast('Dashboard load failed: ' + result.error, 'error');
+                return;
+            }
+
+            const s = result.stats;
+            document.getElementById('dashTotalRepos').innerText = s.totalRepos;
+            document.getElementById('dashSources').innerText    = s.sources;
+            document.getElementById('dashForks').innerText      = s.forks;
+            document.getElementById('dashPrivate').innerText    = s.privateRepos;
+            document.getElementById('dashPublic').innerText     = s.publicRepos;
+            document.getElementById('dashStale').innerText      = s.stale;
+
+            // Recent history
+            renderRecentOps(result.recentHistory || []);
+        }
+
+        function renderRecentOps(ops) {
+            const container = document.getElementById('dashRecentOps');
+            if (!ops || ops.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">No recent operations.</div>';
+                return;
+            }
+            container.innerHTML = ops.map(op => {
+                const badge = opBadge(op);
+                const icon = op.type === 'publish' ? '📤' : (op.type === 'fork-sync' ? '🔀' : '🗑️');
+                const time = new Date(op.timestamp).toLocaleString();
+                return `<div class="history-item">
+                    <span style="font-size:18px;">${icon}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${op.repoName || '—'}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${time}</div>
+                    </div>
+                    <span class="history-badge ${badge.cls}">${badge.label}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function opBadge(op) {
+            const map = {
+                success: { cls: 'badge-success', label: 'Success' },
+                error:   { cls: 'badge-error',   label: 'Error' },
+                synced:  { cls: 'badge-synced',   label: 'Synced' },
+                conflict:{ cls: 'badge-conflict', label: 'Conflict' }
+            };
+            return map[op.status] || { cls: 'badge-error', label: op.status || '?' };
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // ADD PROJECT
+        // ════════════════════════════════════════════════════════════════════
+        let projectFolders = []; // [{ folderPath, folderName, hasGit, suggestedName, repoName, visibility, description, status }]
+
+        async function selectProjectFolders(multiple) {
+            const folders = await window.api.selectFolders({ multiple });
+            if (!folders || folders.length === 0) return;
+
+            // Merge new folders (avoid duplicates by folderPath)
+            for (const f of folders) {
+                if (!projectFolders.find(p => p.folderPath === f.folderPath)) {
+                    projectFolders.push({
+                        ...f,
+                        repoName: f.suggestedName,
+                        visibility: 'public',
+                        description: '',
+                        status: 'pending'
+                    });
+                }
+            }
+
+            renderAddProjectTable();
+        }
+
+        function renderAddProjectTable() {
+            const empty = document.getElementById('addProjEmpty');
+            const table = document.getElementById('addProjectTable');
+            const tbody = document.getElementById('addProjectTableBody');
+            const btnCreate = document.getElementById('btnCreatePush');
+
+            if (projectFolders.length === 0) {
+                empty.style.display = 'block';
+                table.style.display = 'none';
+                btnCreate.disabled = true;
+                return;
+            }
+
+            empty.style.display = 'none';
+            table.style.display = 'table';
+            btnCreate.disabled = false;
+
+            tbody.innerHTML = projectFolders.map((f, i) => {
+                const statusChip = chipHtml(f.status);
+                const gitBadge = f.hasGit
+                    ? '<span style="color:var(--accent-green);font-size:11px;">✓ Git</span>'
+                    : '<span style="color:var(--accent-yellow);font-size:11px;">⊕ Init</span>';
+
+                return `<tr id="pubRow${i}">
+                    <td><input type="checkbox" class="pubCheck" data-idx="${i}" checked></td>
+                    <td><strong>${escHtml(f.folderName)}</strong></td>
+                    <td style="font-size:11px; color:var(--text-secondary); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escHtml(f.folderPath)}">${escHtml(f.folderPath)}</td>
+                    <td>${gitBadge}</td>
+                    <td><input type="text" value="${escHtml(f.repoName)}" onchange="updateProjField(${i},'repoName',this.value)" style="min-width:120px;"></td>
+                    <td>
+                        <select onchange="updateProjField(${i},'visibility',this.value)">
+                            <option value="public" ${f.visibility==='public'?'selected':''}>Public</option>
+                            <option value="private" ${f.visibility==='private'?'selected':''}>Private</option>
+                        </select>
+                    </td>
+                    <td><input type="text" value="${escHtml(f.description)}" placeholder="Optional description…" onchange="updateProjField(${i},'description',this.value)"></td>
+                    <td>${statusChip}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateProjField(idx, field, value) {
+            if (projectFolders[idx]) {
+                projectFolders[idx][field] = value;
+            }
+        }
+
+        function togglePubSelectAll() {
+            const master = document.getElementById('pubSelectAll');
+            document.querySelectorAll('.pubCheck').forEach(cb => cb.checked = master.checked);
+        }
+
+        function chipHtml(status) {
+            const map = {
+                pending:   { cls: 'chip-pending',   label: 'Pending' },
+                running:   { cls: 'chip-running',   label: 'Running' },
+                success:   { cls: 'chip-success',   label: 'Success' },
+                error:     { cls: 'chip-error',     label: 'Error' }
+            };
+            const s = map[status] || { cls: 'chip-pending', label: status };
+            return `<span class="status-chip ${s.cls}">${s.label}</span>`;
+        }
+
+        function addLog(msg, type = 'info') {
+            const log = document.getElementById('publishLog');
+            const cls = { success: 'log-success', error: 'log-error', info: 'log-info', warn: 'log-warn' }[type] || 'log-info';
+            const line = document.createElement('div');
+            line.className = cls;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function startCreateAndPush() {
+            const token = await window.api.getToken();
+            if (!token) {
+                showToast('Please save a GitHub token in Settings first.', 'warning');
+                return;
+            }
+
+            // Collect checked rows
+            const selected = [];
+            document.querySelectorAll('.pubCheck').forEach(cb => {
+                if (cb.checked) {
+                    const idx = parseInt(cb.dataset.idx);
+                    selected.push(idx);
+                }
+            });
+
+            if (selected.length === 0) {
+                showToast('No folders selected.', 'warning');
+                return;
+            }
+
+            const reposToProcess = selected.map(i => projectFolders[i]);
+
+            // Validate repo names
+            for (const r of reposToProcess) {
+                if (!r.repoName || r.repoName.trim().length === 0) {
+                    showToast(`Repo name is empty for: ${r.folderName}`, 'error');
+                    return;
+                }
+            }
+
+            // Update status to running
+            selected.forEach(i => { projectFolders[i].status = 'running'; });
+            renderAddProjectTable();
+
+            document.getElementById('btnCreatePush').disabled = true;
+            document.getElementById('addProjStatus').innerText = `Processing ${reposToProcess.length} folder(s)…`;
+
+            // Listen for progress events
+            window.api.removePublishProgress();
+            window.api.onPublishProgress(({ repoName, message, status }) => {
+                addLog(`[${repoName}] ${message}`, status === 'error' ? 'error' : status === 'success' ? 'success' : 'info');
+            });
+
+            const results = await window.api.createAndPushRepos({
+                token,
+                repos: reposToProcess.map(r => ({
+                    folderPath: r.folderPath,
+                    repoName: r.repoName.trim(),
+                    visibility: r.visibility,
+                    description: r.description
+                }))
+            });
+
+            window.api.removePublishProgress();
+
+            // Update statuses
+            results.forEach((res, ri) => {
+                const idx = selected[ri];
+                projectFolders[idx].status = res.status;
+            });
+            renderAddProjectTable();
+
+            const successCount = results.filter(r => r.status === 'success').length;
+            const errorCount   = results.filter(r => r.status === 'error').length;
+
+            document.getElementById('addProjStatus').innerText = `Done: ${successCount} succeeded, ${errorCount} failed.`;
+            document.getElementById('btnCreatePush').disabled = false;
+
+            if (successCount > 0) {
+                showToast(`${successCount} repo(s) created and pushed successfully!`, 'success');
+            }
+            if (errorCount > 0) {
+                showToast(`${errorCount} repo(s) failed. Check the log for details.`, 'error');
+            }
+        }
+
+        function escHtml(str) {
+            return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // FORK SYNC VIEW
+        // ════════════════════════════════════════════════════════════════════
+        let forkRepos = [];
+
+        async function loadForkSyncView() {
+            const token = await window.api.getToken();
+            if (!token) {
+                showToast('Please save a GitHub token in Settings first.', 'warning');
+                return;
+            }
+
+            document.getElementById('forkSyncStatus').innerText = 'Loading forks…';
+            document.getElementById('forkSyncEmpty').style.display = 'none';
+            document.getElementById('forkSyncTable').style.display = 'none';
+
+            // Use existing getRepos
+            const result = await window.api.getRepos(token);
+            document.getElementById('forkSyncStatus').innerText = '';
+
+            if (!result.success) {
+                showToast('Failed to load repos: ' + result.error, 'error');
+                document.getElementById('forkSyncEmpty').style.display = 'block';
+                document.getElementById('forkSyncEmpty').innerText = 'Error: ' + result.error;
+                return;
+            }
+
+            forkRepos = result.data.filter(r => r.fork);
+
+            // Update badge
+            const badge = document.getElementById('countFork');
+            if (badge) badge.innerText = forkRepos.length;
+
+            if (forkRepos.length === 0) {
+                document.getElementById('forkSyncEmpty').style.display = 'block';
+                document.getElementById('forkSyncEmpty').innerText = 'No forked repositories found.';
+                return;
+            }
+
+            renderForkSyncTable();
+        }
+
+        function renderForkSyncTable() {
+            const table = document.getElementById('forkSyncTable');
+            const tbody = document.getElementById('forkSyncTableBody');
+
+            table.style.display = 'table';
+
+            tbody.innerHTML = forkRepos.map((r, i) => {
+                const upstream = r.parent ? r.parent.full_name : (r.fork ? '(unknown upstream)' : '—');
+                const updated  = new Date(r.updated_at).toLocaleDateString();
+                const statusChip = r._syncStatus ? chipHtmlFork(r._syncStatus, r._syncMsg) : '<span class="status-chip chip-pending">Not Synced</span>';
+
+                return `<tr id="forkRow${i}">
+                    <td><input type="checkbox" class="forkCheck" data-idx="${i}"></td>
+                    <td>
+                        <a href="#" onclick="window.api.openExternal('${r.html_url}'); return false;" style="color:var(--accent-blue); text-decoration:none; font-weight:600;">${escHtml(r.name)}</a>
+                    </td>
+                    <td style="font-size:11px; color:var(--text-secondary);">${escHtml(upstream)}</td>
+                    <td style="font-size:12px;">${escHtml(r.default_branch || 'main')}</td>
+                    <td style="font-size:11px; color:var(--text-secondary);">${updated}</td>
+                    <td id="forkStatus${i}">${statusChip}</td>
+                    <td><button class="btn-primary" style="padding:4px 12px; font-size:11px; background:#8b5cf6;" onclick="syncSingleFork(${i})">Sync</button></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('btnSyncAll').disabled = false;
+        }
+
+        function chipHtmlFork(status, msg) {
+            const map = {
+                synced:           { cls: 'chip-synced',           label: 'Synced' },
+                conflict:         { cls: 'chip-conflict',         label: 'Conflict' },
+                'not-eligible':   { cls: 'chip-not-eligible',     label: 'Not Eligible' },
+                'permission-error':{ cls: 'chip-permission-error',label: 'No Permission' },
+                error:            { cls: 'chip-error',            label: 'Error' }
+            };
+            const s = map[status] || { cls: 'chip-error', label: status };
+            return `<span class="status-chip ${s.cls}" title="${escHtml(msg || '')}">${s.label}</span>`;
+        }
+
+        function toggleForkSelectAll() {
+            const master = document.getElementById('forkSelectAll');
+            document.querySelectorAll('.forkCheck').forEach(cb => cb.checked = master.checked);
+        }
+
+        async function syncSingleFork(idx) {
+            const r = forkRepos[idx];
+            if (!r) return;
+
+            const token = await window.api.getToken();
+            if (!token) { showToast('No token', 'error'); return; }
+
+            document.getElementById(`forkStatus${idx}`).innerHTML = '<span class="status-chip chip-running">Syncing…</span>';
+
+            const results = await window.api.syncForkBulk({ token, repos: [r.full_name] });
+            const res = results[0];
+
+            forkRepos[idx]._syncStatus = res.status;
+            forkRepos[idx]._syncMsg    = res.message;
+
+            document.getElementById(`forkStatus${idx}`).innerHTML = chipHtmlFork(res.status, res.message);
+
+            if (res.status === 'synced') showToast(`${r.full_name} synced successfully.`, 'success');
+            else if (res.status === 'conflict') showToast(`Conflict in ${r.full_name}: ${res.message}`, 'warning');
+            else showToast(`Sync failed for ${r.full_name}: ${res.message}`, 'error');
+        }
+
+        async function syncSelectedForks() {
+            const token = await window.api.getToken();
+            if (!token) { showToast('No token', 'error'); return; }
+
+            const selected = [];
+            document.querySelectorAll('.forkCheck').forEach(cb => {
+                if (cb.checked) selected.push(parseInt(cb.dataset.idx));
+            });
+
+            if (selected.length === 0) {
+                showToast('No forks selected.', 'warning');
+                return;
+            }
+
+            document.getElementById('btnSyncAll').disabled = true;
+            document.getElementById('forkSyncStatus').innerText = `Syncing ${selected.length} fork(s)…`;
+
+            // Mark as running
+            selected.forEach(i => {
+                document.getElementById(`forkStatus${i}`).innerHTML = '<span class="status-chip chip-running">Syncing…</span>';
+            });
+
+            const repoNames = selected.map(i => forkRepos[i].full_name);
+            const results = await window.api.syncForkBulk({ token, repos: repoNames });
+
+            results.forEach((res, ri) => {
+                const idx = selected[ri];
+                forkRepos[idx]._syncStatus = res.status;
+                forkRepos[idx]._syncMsg    = res.message;
+                document.getElementById(`forkStatus${idx}`).innerHTML = chipHtmlFork(res.status, res.message);
+            });
+
+            const synced = results.filter(r => r.status === 'synced').length;
+            const errors = results.filter(r => r.status !== 'synced').length;
+            document.getElementById('forkSyncStatus').innerText = `Done: ${synced} synced, ${errors} issues.`;
+            document.getElementById('btnSyncAll').disabled = false;
+
+            if (synced > 0) showToast(`${synced} fork(s) synced successfully.`, 'success');
+            if (errors > 0) showToast(`${errors} fork(s) had issues. Check status column.`, 'warning');
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // HISTORY VIEW
+        // ════════════════════════════════════════════════════════════════════
+        async function loadHistoryView() {
+            const history = await window.api.getOperationHistory();
+            const container = document.getElementById('historyContent');
+
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;">No operation history.</div>';
+                return;
+            }
+
+            const typeIcons = { publish: '📤', 'fork-sync': '🔀', delete: '🗑️' };
+
+            container.innerHTML = '<div class="history-list">' + history.map(op => {
+                const badge = opBadge(op);
+                const icon  = typeIcons[op.type] || '⚙️';
+                const time  = new Date(op.timestamp).toLocaleString();
+                const detail = op.error ? `<div style="font-size:11px; color:var(--danger); margin-top:3px;">${escHtml(op.error)}</div>`
+                             : op.repoUrl ? `<div style="font-size:11px; margin-top:3px;"><a href="#" onclick="window.api.openExternal('${op.repoUrl}');return false;" style="color:var(--accent-blue);">${escHtml(op.repoUrl)}</a></div>`
+                             : op.message ? `<div style="font-size:11px; color:var(--text-secondary); margin-top:3px;">${escHtml(op.message)}</div>`
+                             : '';
+
+                return `<div class="history-item">
+                    <span style="font-size:20px;">${icon}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(op.repoName || '—')}</div>
+                        ${op.folderPath ? `<div style="font-size:11px; color:var(--text-secondary);">${escHtml(op.folderPath)}</div>` : ''}
+                        ${detail}
+                    </div>
+                    <div style="text-align:right; flex-shrink:0;">
+                        <span class="history-badge ${badge.cls}">${badge.label}</span>
+                        <div style="font-size:10px; color:var(--text-secondary); margin-top:4px;">${time}</div>
+                    </div>
+                </div>`;
+            }).join('') + '</div>';
+        }
+
+        async function confirmClearHistory() {
+            const ok = await showConfirm('Clear all operation history? This cannot be undone.', {
+                type: 'danger', title: 'Clear History', okText: 'Clear'
+            });
+            if (!ok) return;
+            await window.api.clearOperationHistory();
+            loadHistoryView();
+            showToast('History cleared.', 'success');
+        }
+
     </script>
 </body>
 

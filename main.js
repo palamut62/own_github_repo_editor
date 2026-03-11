@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 let mainWindow;
 let currentUser = null; // To cache user info
@@ -1489,3 +1490,328 @@ ipcMain.handle('applyBulkCommitFixes', async (event, { token, repoFullName, fixe
 function maxShaMatch(a, b) {
     return a.includes(b) || b.includes(a);
 }
+
+// ─── Operation History ────────────────────────────────────────────────────────
+const historyFilePath = path.join(__dirname, 'operation-history.json');
+
+function loadHistory() {
+    try {
+        if (fs.existsSync(historyFilePath)) {
+            return JSON.parse(fs.readFileSync(historyFilePath, 'utf-8'));
+        }
+    } catch (e) {}
+    return [];
+}
+
+function saveHistory(history) {
+    try {
+        fs.writeFileSync(historyFilePath, JSON.stringify(history, null, 2));
+    } catch (e) {
+        console.error('History save error:', e);
+    }
+}
+
+function addToHistory(entry) {
+    const history = loadHistory();
+    history.unshift({ ...entry, id: Date.now() });
+    if (history.length > 500) history.length = 500;
+    saveHistory(history);
+}
+
+// 28. Select Folders (single or multiple)
+ipcMain.handle('selectFolders', async (event, { multiple }) => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: multiple
+            ? ['openDirectory', 'multiSelections']
+            : ['openDirectory'],
+        title: multiple ? 'Select Multiple Project Folders' : 'Select Project Folder'
+    });
+
+    if (result.canceled) return [];
+
+    return result.filePaths.map(folderPath => {
+        const folderName = path.basename(folderPath);
+        const hasGit = fs.existsSync(path.join(folderPath, '.git'));
+        const suggestedName = folderName
+            .toLowerCase()
+            .replace(/[^a-z0-9-_.]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '') || 'my-project';
+
+        return { folderPath, folderName, hasGit, suggestedName };
+    });
+});
+
+// 29. Create GitHub repos and push local folders
+ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
+    const results = [];
+
+    for (const repo of repos) {
+        const result = {
+            folderPath: repo.folderPath,
+            repoName: repo.repoName,
+            steps: [],
+            status: 'processing',
+            error: null,
+            repoUrl: null
+        };
+
+        try {
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Creating GitHub repository…',
+                status: 'processing'
+            });
+
+            // 1. Create GitHub repo
+            let githubRepo;
+            try {
+                githubRepo = await githubRequest('/user/repos', 'POST', token, {
+                    name: repo.repoName,
+                    description: repo.description || '',
+                    private: repo.visibility === 'private',
+                    auto_init: false
+                });
+                result.steps.push({ step: 'GitHub repository created', status: 'success' });
+            } catch (e) {
+                if (e.message.includes('422') || e.message.toLowerCase().includes('already exists')) {
+                    throw new Error(`Repository "${repo.repoName}" already exists on GitHub.`);
+                }
+                throw e;
+            }
+
+            // 2. Ensure we have user info for git config
+            if (!currentUser) {
+                currentUser = await githubRequest('/user', 'GET', token);
+            }
+
+            // 3. Git init if needed
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Preparing local repository…',
+                status: 'processing'
+            });
+
+            const gitDir = path.join(repo.folderPath, '.git');
+            if (!fs.existsSync(gitDir)) {
+                execSync('git init', { cwd: repo.folderPath, stdio: 'pipe' });
+                try {
+                    execSync('git checkout -b main', { cwd: repo.folderPath, stdio: 'pipe' });
+                } catch (e) { /* branch may already exist */ }
+                result.steps.push({ step: 'Git initialised (new repo)', status: 'success' });
+            } else {
+                result.steps.push({ step: 'Git already initialised', status: 'info' });
+            }
+
+            // 4. Set local git user config
+            const userEmail = currentUser.email || `${currentUser.login}@users.noreply.github.com`;
+            const userName = currentUser.name || currentUser.login;
+            execSync(`git config user.email "${userEmail}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execSync(`git config user.name "${userName}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+
+            // 5. Stage all files
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Staging files…',
+                status: 'processing'
+            });
+            execSync('git add .', { cwd: repo.folderPath, stdio: 'pipe' });
+            result.steps.push({ step: 'Files staged', status: 'success' });
+
+            // 6. Commit (if needed)
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Creating initial commit…',
+                status: 'processing'
+            });
+
+            let hasCommits = false;
+            try {
+                execSync('git log --oneline -1', { cwd: repo.folderPath, stdio: 'pipe' });
+                hasCommits = true;
+            } catch (e) {}
+
+            if (!hasCommits) {
+                const statusOut = execSync('git status --porcelain', { cwd: repo.folderPath }).toString().trim();
+                if (statusOut.length > 0) {
+                    execSync('git commit -m "Initial commit"', { cwd: repo.folderPath, stdio: 'pipe' });
+                    result.steps.push({ step: 'Initial commit created', status: 'success' });
+                } else {
+                    execSync('git commit --allow-empty -m "Initial commit"', { cwd: repo.folderPath, stdio: 'pipe' });
+                    result.steps.push({ step: 'Empty initial commit created', status: 'info' });
+                }
+            } else {
+                result.steps.push({ step: 'Using existing commits', status: 'info' });
+            }
+
+            // 7. Add remote
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Adding remote origin…',
+                status: 'processing'
+            });
+            try {
+                execSync('git remote remove origin', { cwd: repo.folderPath, stdio: 'pipe' });
+            } catch (e) {}
+            const cloneUrl = githubRepo.clone_url;
+            execSync(`git remote add origin ${cloneUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
+            result.steps.push({ step: 'Remote origin added', status: 'success' });
+
+            // 8. Push
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: 'Pushing to GitHub…',
+                status: 'processing'
+            });
+
+            let branchName = 'main';
+            try {
+                branchName = execSync('git branch --show-current', { cwd: repo.folderPath }).toString().trim() || 'main';
+            } catch (e) {}
+
+            const authUrl = cloneUrl.replace('https://', `https://${token}@`);
+            execSync(`git remote set-url origin ${authUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execSync(`git push -u origin ${branchName}`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execSync(`git remote set-url origin ${cloneUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
+
+            result.steps.push({ step: 'Pushed to GitHub', status: 'success' });
+            result.status = 'success';
+            result.repoUrl = githubRepo.html_url;
+
+        } catch (e) {
+            result.status = 'error';
+            result.error = e.message;
+            result.steps.push({ step: `Error: ${e.message}`, status: 'error' });
+        }
+
+        results.push(result);
+
+        addToHistory({
+            type: 'publish',
+            repoName: repo.repoName,
+            folderPath: repo.folderPath,
+            status: result.status,
+            error: result.error || null,
+            repoUrl: result.repoUrl || null,
+            timestamp: new Date().toISOString()
+        });
+
+        event.sender.send('publish-progress', {
+            repoName: repo.repoName,
+            message: result.status === 'success' ? 'Done!' : `Failed: ${result.error}`,
+            status: result.status
+        });
+    }
+
+    return results;
+});
+
+// 30. Get operation history
+ipcMain.handle('getOperationHistory', async () => {
+    return loadHistory();
+});
+
+// 31. Clear operation history
+ipcMain.handle('clearOperationHistory', async () => {
+    saveHistory([]);
+    return true;
+});
+
+// 32. Dashboard stats
+ipcMain.handle('getDashboardStats', async (event, token) => {
+    try {
+        if (!currentUser) {
+            currentUser = await githubRequest('/user', 'GET', token);
+        }
+
+        let allRepos = [];
+        let page = 1;
+        let hasMore = true;
+        while (hasMore) {
+            const repos = await githubRequest(
+                `/user/repos?per_page=100&page=${page}&sort=updated`, 'GET', token
+            );
+            if (repos && repos.length > 0) {
+                allRepos = allRepos.concat(repos);
+                if (repos.length < 100) hasMore = false;
+                page++;
+            } else {
+                hasMore = false;
+            }
+        }
+
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        return {
+            success: true,
+            stats: {
+                totalRepos: allRepos.length,
+                sources: allRepos.filter(r => !r.fork).length,
+                forks: allRepos.filter(r => r.fork).length,
+                privateRepos: allRepos.filter(r => r.private).length,
+                publicRepos: allRepos.filter(r => !r.private).length,
+                stale: allRepos.filter(r => new Date(r.updated_at) < sixMonthsAgo).length,
+                username: currentUser.login,
+                avatar: currentUser.avatar_url
+            },
+            recentHistory: loadHistory().slice(0, 5)
+        };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
+// 33. Bulk fork sync
+ipcMain.handle('syncForkBulk', async (event, { token, repos }) => {
+    const results = [];
+
+    for (const repoFullName of repos) {
+        const [owner, repo] = repoFullName.split('/');
+
+        // First, get the repo info to determine default branch
+        let defaultBranch = 'main';
+        try {
+            const repoInfo = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+            defaultBranch = repoInfo.default_branch || 'main';
+        } catch (e) {}
+
+        try {
+            const data = await githubRequest(
+                `/repos/${owner}/${repo}/merge-upstream`,
+                'POST',
+                token,
+                { branch: defaultBranch }
+            );
+            results.push({
+                repo: repoFullName,
+                status: 'synced',
+                message: data.message || 'Synced successfully'
+            });
+        } catch (e) {
+            let status = 'error';
+            let message = e.message;
+            if (e.message.includes('409')) {
+                status = 'conflict';
+                message = 'Merge conflict with upstream — manual resolution required';
+            } else if (e.message.includes('422')) {
+                status = 'not-eligible';
+                message = 'Not eligible for automatic sync';
+            } else if (e.message.includes('403')) {
+                status = 'permission-error';
+                message = 'Permission denied — check token scopes';
+            }
+            results.push({ repo: repoFullName, status, message });
+        }
+
+        addToHistory({
+            type: 'fork-sync',
+            repoName: repoFullName,
+            status: results[results.length - 1].status,
+            message: results[results.length - 1].message,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    return results;
+});
