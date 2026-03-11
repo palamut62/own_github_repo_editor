@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 let mainWindow;
 let currentUser = null; // To cache user info
@@ -1611,19 +1611,24 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
 
             // 4b. Auto-generate .gitignore if requested
             if (repo.autoGitignore) {
+                // Use type already detected by the frontend; fall back to local detection
+                const detectedType = repo.detectedType || detectProjectType(repo.folderPath);
                 const gitignorePath = path.join(repo.folderPath, '.gitignore');
-                if (!fs.existsSync(gitignorePath)) {
+                const content = GITIGNORE_TEMPLATES[detectedType] || GITIGNORE_TEMPLATES.generic;
+                try {
+                    fs.writeFileSync(gitignorePath, content, { flag: 'wx' });
                     event.sender.send('publish-progress', {
                         repoName: repo.repoName,
                         message: 'Generating .gitignore…',
                         status: 'processing'
                     });
-                    const detectedType = detectProjectType(repo.folderPath);
-                    const content = GITIGNORE_TEMPLATES[detectedType] || GITIGNORE_TEMPLATES.generic;
-                    fs.writeFileSync(gitignorePath, content, 'utf-8');
                     result.steps.push({ step: `.gitignore created (${detectedType})`, status: 'success' });
-                } else {
-                    result.steps.push({ step: '.gitignore already exists, skipped', status: 'info' });
+                } catch (e) {
+                    if (e.code === 'EEXIST') {
+                        result.steps.push({ step: '.gitignore already exists, skipped', status: 'info' });
+                    } else {
+                        throw e;
+                    }
                 }
             }
 
@@ -1643,10 +1648,8 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                 status: 'processing'
             });
 
-            // Build commit message from template
+            // Build commit message — use execFileSync with array args to avoid shell injection
             const rawMsg = (repo.commitMessage || 'Initial commit').replace(/{{project_name}}/g, repo.repoName);
-            // Escape double quotes for shell
-            const commitMsg = rawMsg.replace(/"/g, '\\"');
 
             let hasCommits = false;
             try {
@@ -1657,10 +1660,10 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             if (!hasCommits) {
                 const statusOut = execSync('git status --porcelain', { cwd: repo.folderPath }).toString().trim();
                 if (statusOut.length > 0) {
-                    execSync(`git commit -m "${commitMsg}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+                    execFileSync('git', ['commit', '-m', rawMsg], { cwd: repo.folderPath, stdio: 'pipe' });
                     result.steps.push({ step: `Commit created: "${rawMsg}"`, status: 'success' });
                 } else {
-                    execSync(`git commit --allow-empty -m "${commitMsg}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+                    execFileSync('git', ['commit', '--allow-empty', '-m', rawMsg], { cwd: repo.folderPath, stdio: 'pipe' });
                     result.steps.push({ step: 'Empty initial commit created', status: 'info' });
                 }
             } else {
@@ -1844,9 +1847,7 @@ const configFilePath = path.join(__dirname, 'app-config.json');
 
 function loadConfig() {
     try {
-        if (fs.existsSync(configFilePath)) {
-            return JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
-        }
+        return JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
     } catch (e) {}
     return {};
 }
