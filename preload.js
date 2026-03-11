@@ -56,5 +56,21 @@ contextBridge.exposeInMainWorld('api', {
     close: () => ipcRenderer.send('app:close'),
 
     // External Links
-    openExternal: (url) => ipcRenderer.send('open-external', url)
+    openExternal: (url) => ipcRenderer.send('open-external', url),
+
+    // ── Multi-Repo Publisher (PRD) ────────────────────────────────────────────
+    selectFolders: (opts) => ipcRenderer.invoke('selectFolders', opts),
+    createAndPushRepos: (data) => ipcRenderer.invoke('createAndPushRepos', data),
+    onPublishProgress: (cb) => ipcRenderer.on('publish-progress', (_, data) => cb(data)),
+    removePublishProgress: () => ipcRenderer.removeAllListeners('publish-progress'),
+
+    // Operation History
+    getOperationHistory: () => ipcRenderer.invoke('getOperationHistory'),
+    clearOperationHistory: () => ipcRenderer.invoke('clearOperationHistory'),
+
+    // Dashboard Stats
+    getDashboardStats: (token) => ipcRenderer.invoke('getDashboardStats', token),
+
+    // Bulk Fork Sync
+    syncForkBulk: (data) => ipcRenderer.invoke('syncForkBulk', data)
 });
