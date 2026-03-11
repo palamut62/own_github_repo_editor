@@ -1888,8 +1888,9 @@
             switchView('list'); // ensure repo grid default card layout
             showView('dashboard');
 
-            // Load saved app config
-            const config = await window.api.getAppConfig();
+            // Load saved app config (cache for session)
+            cachedAppConfig = await window.api.getAppConfig();
+            const config = cachedAppConfig;
             if (config.commitTemplateType) {
                 currentCommitTemplateType   = config.commitTemplateType;
                 currentCommitTemplateCustom = config.commitTemplateCustom || '';
@@ -2118,8 +2119,8 @@
             document.getElementById('settingsToken').value = t || '';
             document.getElementById('settingsRouterKey').value = k || '';
 
-            // Load app config defaults
-            const config = await window.api.getAppConfig();
+            // Use cached config (avoid redundant disk read)
+            const config = cachedAppConfig || {};
             document.getElementById('settingsDefaultVisibility').value = config.defaultVisibility || 'public';
             document.getElementById('settingsDefaultBranch').value     = config.defaultBranch || 'main';
             document.getElementById('settingsAutoGitignore').checked   = config.autoGitignore !== false;
@@ -2144,16 +2145,18 @@
             await window.api.saveToken(t);
             await window.api.saveRouterKey(k);
 
-            // Save app config
-            const tmplType   = document.getElementById('settingsCommitTemplate').value;
-            const tmplCustom = document.getElementById('settingsCommitCustom').value;
-            await window.api.saveAppConfig({
+            // Save app config and refresh cache
+            const newConfig = {
                 defaultVisibility:    document.getElementById('settingsDefaultVisibility').value,
                 defaultBranch:        document.getElementById('settingsDefaultBranch').value,
                 autoGitignore:        document.getElementById('settingsAutoGitignore').checked,
-                commitTemplateType:   tmplType,
-                commitTemplateCustom: tmplCustom
-            });
+                commitTemplateType:   document.getElementById('settingsCommitTemplate').value,
+                commitTemplateCustom: document.getElementById('settingsCommitCustom').value
+            };
+            await window.api.saveAppConfig(newConfig);
+            cachedAppConfig = { ...cachedAppConfig, ...newConfig };
+            const tmplType   = newConfig.commitTemplateType;
+            const tmplCustom = newConfig.commitTemplateCustom;
 
             // Sync commit template to Add Project view
             currentCommitTemplateType   = tmplType;
@@ -3330,6 +3333,7 @@ npm start</pre>
         // ADD PROJECT
         // ════════════════════════════════════════════════════════════════════
         let projectFolders = []; // [{ folderPath, folderName, hasGit, suggestedName, repoName, visibility, description, status }]
+        let cachedAppConfig = null; // loaded once at startup, refreshed after saveSettings
 
         // Commit template state
         let currentCommitTemplateType = 'simple';
@@ -3391,10 +3395,9 @@ npm start</pre>
         }
 
         async function saveCurrentCommitTemplate() {
-            await window.api.saveAppConfig({
-                commitTemplateType: currentCommitTemplateType,
-                commitTemplateCustom: currentCommitTemplateCustom
-            });
+            const update = { commitTemplateType: currentCommitTemplateType, commitTemplateCustom: currentCommitTemplateCustom };
+            await window.api.saveAppConfig(update);
+            cachedAppConfig = { ...cachedAppConfig, ...update };
             showToast('Commit template saved as default.', 'success');
         }
 
@@ -3402,30 +3405,32 @@ npm start</pre>
             const folders = await window.api.selectFolders({ multiple });
             if (!folders || folders.length === 0) return;
 
-            // Load defaults from config
-            const config = await window.api.getAppConfig();
+            // Use cached config (loaded at startup, refreshed after saveSettings)
+            const config = cachedAppConfig || {};
             const defaultVis    = config.defaultVisibility || 'public';
             const autoGitignore = config.autoGitignore !== false;
 
-            // Merge new folders (avoid duplicates by folderPath)
-            for (const f of folders) {
-                if (!projectFolders.find(p => p.folderPath === f.folderPath)) {
-                    // Detect project type asynchronously
-                    const typeResult = await window.api.detectProjectType(f.folderPath);
-                    const detectedType = typeResult.type || 'generic';
+            // Only process new (non-duplicate) folders
+            const newFolders = folders.filter(f => !projectFolders.find(p => p.folderPath === f.folderPath));
 
-                    projectFolders.push({
-                        ...f,
-                        repoName: f.suggestedName,
-                        visibility: defaultVis,
-                        description: '',
-                        autoGitignore,
-                        detectedType,
-                        commitMessage: resolveCommitTemplate(f.suggestedName),
-                        status: 'pending'
-                    });
-                }
-            }
+            // Detect project types in parallel
+            const typeResults = await Promise.all(
+                newFolders.map(f => window.api.detectProjectType(f.folderPath))
+            );
+
+            newFolders.forEach((f, i) => {
+                const detectedType = typeResults[i].type || 'generic';
+                projectFolders.push({
+                    ...f,
+                    repoName: f.suggestedName,
+                    visibility: defaultVis,
+                    description: '',
+                    autoGitignore,
+                    detectedType,
+                    commitMessage: resolveCommitTemplate(f.suggestedName),
+                    status: 'pending'
+                });
+            });
 
             renderAddProjectTable();
         }
@@ -3575,6 +3580,7 @@ npm start</pre>
                     visibility: r.visibility,
                     description: r.description,
                     autoGitignore: r.autoGitignore !== false,
+                    detectedType: r.detectedType,
                     commitMessage: r.commitMessage || resolveCommitTemplate(r.repoName)
                 }))
             });
