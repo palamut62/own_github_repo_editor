@@ -72,5 +72,13 @@ contextBridge.exposeInMainWorld('api', {
     getDashboardStats: (token) => ipcRenderer.invoke('getDashboardStats', token),
 
     // Bulk Fork Sync
-    syncForkBulk: (data) => ipcRenderer.invoke('syncForkBulk', data)
+    syncForkBulk: (data) => ipcRenderer.invoke('syncForkBulk', data),
+
+    // .gitignore & Project Type
+    detectProjectType: (folderPath) => ipcRenderer.invoke('detectProjectType', folderPath),
+    createGitignore: (data) => ipcRenderer.invoke('createGitignore', data),
+
+    // App Config (commit templates, defaults)
+    getAppConfig: () => ipcRenderer.invoke('getAppConfig'),
+    saveAppConfig: (update) => ipcRenderer.invoke('saveAppConfig', update)
 });
