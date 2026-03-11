@@ -1606,8 +1606,8 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             // 4. Set local git user config
             const userEmail = currentUser.email || `${currentUser.login}@users.noreply.github.com`;
             const userName = currentUser.name || currentUser.login;
-            execSync(`git config user.email "${userEmail}"`, { cwd: repo.folderPath, stdio: 'pipe' });
-            execSync(`git config user.name "${userName}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execFileSync('git', ['config', 'user.email', userEmail], { cwd: repo.folderPath, stdio: 'pipe' });
+            execFileSync('git', ['config', 'user.name', userName], { cwd: repo.folderPath, stdio: 'pipe' });
 
             // 4b. Auto-generate .gitignore if requested
             if (repo.autoGitignore) {
@@ -1680,7 +1680,7 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                 execSync('git remote remove origin', { cwd: repo.folderPath, stdio: 'pipe' });
             } catch (e) {}
             const cloneUrl = githubRepo.clone_url;
-            execSync(`git remote add origin ${cloneUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execFileSync('git', ['remote', 'add', 'origin', cloneUrl], { cwd: repo.folderPath, stdio: 'pipe' });
             result.steps.push({ step: 'Remote origin added', status: 'success' });
 
             // 8. Push
