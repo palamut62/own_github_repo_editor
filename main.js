@@ -287,6 +287,14 @@ ipcMain.handle('saveRouterKey', async (event, key) => {
 });
 
 // 6. AI & Rename Logic Helpers
+function getAIModel() {
+    try {
+        const config = loadConfig();
+        return config.aiModel || 'moonshotai/kimi-k2.5';
+    } catch (e) {
+        return 'moonshotai/kimi-k2.5';
+    }
+}
 async function getReadmeContent(token, owner, repo) {
     try {
         const data = await githubRequest(`/repos/${owner}/${repo}/readme`, 'GET', token);
@@ -302,7 +310,7 @@ async function getReadmeContent(token, owner, repo) {
 function openRouterRequest(apiKey, readmeContent) {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify({
-            model: "moonshotai/kimi-k2.5",
+            model: getAIModel(),
             messages: [
                 {
                     "role": "system",
@@ -421,7 +429,7 @@ ipcMain.on('open-external', (event, url) => {
 function openRouterDescriptionRequest(apiKey, readmeContent) {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify({
-            model: "moonshotai/kimi-k2.5",
+            model: getAIModel(),
             messages: [
                 {
                     "role": "system",
@@ -504,7 +512,7 @@ ipcMain.handle('updateDescription', async (event, { token, owner, repo, descript
 function openRouterReadmeRequest(apiKey, repoName, files) {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify({
-            model: "moonshotai/kimi-k2.5",
+            model: getAIModel(),
             messages: [
                 {
                     "role": "system",
@@ -749,6 +757,40 @@ ipcMain.handle('syncFork', async (event, { token, fullName }) => {
         } catch (e2) {
             return { success: false, error: e2.message };
         }
+    }
+});
+
+// 13b. Check fork behind/ahead status
+ipcMain.handle('checkForkStatus', async (event, { token, fullName }) => {
+    try {
+        const [owner, repo] = fullName.split('/');
+        const repoInfo = await githubRequest(`/repos/${owner}/${repo}`, 'GET', token);
+
+        if (!repoInfo.fork || !repoInfo.parent) {
+            return { success: false, error: 'Not a fork or no parent info' };
+        }
+
+        const defaultBranch = repoInfo.default_branch || 'main';
+        const parentOwner = repoInfo.parent.owner.login;
+        const parentRepo = repoInfo.parent.name;
+        const parentBranch = repoInfo.parent.default_branch || 'main';
+
+        // Compare: upstream...fork
+        const comparison = await githubRequest(
+            `/repos/${parentOwner}/${parentRepo}/compare/${parentOwner}:${parentBranch}...${owner}:${defaultBranch}`,
+            'GET',
+            token
+        );
+
+        return {
+            success: true,
+            behind: comparison.behind_by || 0,
+            ahead: comparison.ahead_by || 0,
+            status: comparison.status, // "diverged", "ahead", "behind", "identical"
+            parentFullName: repoInfo.parent.full_name
+        };
+    } catch (e) {
+        return { success: false, error: e.message };
     }
 });
 
@@ -1139,7 +1181,7 @@ async function getFileContent(token, owner, repo, path) {
 function openRouterAnalysisRequest(apiKey, analysisData) {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify({
-            model: "moonshotai/kimi-k2.5",
+            model: getAIModel(),
             messages: [
                 {
                     "role": "system",
@@ -1294,10 +1336,10 @@ ipcMain.handle('analyzeExternalRepo', async (event, { token, routerKey, repoUrl 
 // 25. AI Commit Fixer Logic
 function openRouterCommitRequest(apiKey, commits) {
     return new Promise((resolve, reject) => {
-        const commitText = commits.map(c => `SHA: ${c.sha}\nMsg: ${c.message}`).join('\n---\n');
+        const commitText = commits.map(c => `SHA: ${c.sha.substring(0, 7)}\nMsg: ${c.message}`).join('\n---\n');
 
         const postData = JSON.stringify({
-            model: "moonshotai/kimi-k2.5",
+            model: getAIModel(),
             messages: [
                 {
                     "role": "system",
@@ -1355,7 +1397,7 @@ ipcMain.handle('analyzeCommitsAI', async (event, { token, routerKey, repoFullNam
         try {
             const commits = await githubRequest(`/repos/${owner}/${repo}/commits?per_page=10`, 'GET', token);
             recentCommits = commits.map(c => ({
-                sha: c.sha.substring(0, 7),
+                sha: c.sha,
                 message: c.commit.message.split('\n')[0] // Only first line
             }));
         } catch (e) {
@@ -1369,7 +1411,7 @@ ipcMain.handle('analyzeCommitsAI', async (event, { token, routerKey, repoFullNam
 
         // 3. Merge results
         const results = recentCommits.map(c => {
-            const suggestion = suggestions.find(s => s.sha === c.sha || s.sha.startsWith(c.sha));
+            const suggestion = suggestions.find(s => c.sha === s.sha || c.sha.startsWith(s.sha) || s.sha.startsWith(c.sha.substring(0, 7)));
             return {
                 sha: c.sha,
                 original: c.message,

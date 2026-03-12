@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('api', {
     // Detailed Repo Info & Fork Sync
     getDetailedRepoInfo: (data) => ipcRenderer.invoke('getDetailedRepoInfo', data),
     syncFork: (data) => ipcRenderer.invoke('syncFork', data),
+    checkForkStatus: (data) => ipcRenderer.invoke('checkForkStatus', data),
 
     // Repo Organization (Visibility, Topics, License)
     changeVisibility: (data) => ipcRenderer.invoke('changeVisibility', data),

@@ -142,7 +142,7 @@
         }
 
         .nav-group {
-            padding: 12px 20px;
+            padding: 4px 12px;
         }
 
         .nav-title {
@@ -150,15 +150,60 @@
             text-transform: uppercase;
             color: var(--text-secondary);
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 0;
+        }
+
+        .nav-category {
+            margin-bottom: 2px;
+        }
+
+        .nav-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .nav-category-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-category-header .nav-title {
+            margin-bottom: 0;
+            pointer-events: none;
+        }
+
+        .nav-category-arrow {
+            font-size: 10px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+
+        .nav-category.collapsed .nav-category-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .nav-category-body {
+            overflow: hidden;
+            max-height: 500px;
+            transition: max-height 0.25s ease;
+            padding-left: 4px;
+        }
+
+        .nav-category.collapsed .nav-category-body {
+            max-height: 0;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
-            margin-bottom: 4px;
+            padding: 7px 12px;
+            margin-bottom: 2px;
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
@@ -180,7 +225,7 @@
         }
 
         .sidebar-footer {
-            padding: 20px;
+            padding: 12px 16px;
             border-top: 1px solid var(--border-color);
             background-color: var(--bg-sidebar);
             flex-shrink: 0;
@@ -473,6 +518,31 @@
             max-width: 500px;
             width: 90%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            z-index: 10;
+            transition: background 0.15s, color 0.15s;
+            line-height: 1;
+        }
+
+        .modal-close-btn:hover {
+            background: #e81123;
+            color: white;
         }
 
         .auth-input {
@@ -927,146 +997,220 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <!-- Primary Navigation -->
-        <div class="sidebar-header">
-            <div class="nav-title">Navigation</div>
-            <div class="nav-item active" id="navDashboard" onclick="showView('dashboard')">
-                <span>🏠 Dashboard</span>
-            </div>
-            <div class="nav-item" id="navAddProject" onclick="showView('addProject')">
-                <span>➕ Add Project</span>
-            </div>
-            <div class="nav-item" id="navRepos" onclick="showView('repos'); applyFilter('all')">
-                <span>📁 Repositories</span>
-                <span class="nav-badge" id="countAll">0</span>
-            </div>
-            <div class="nav-item" id="navForkSync" onclick="showView('forkSync')">
-                <span>🔀 Fork Sync</span>
-                <span class="nav-badge" id="countFork">0</span>
-            </div>
-            <div class="nav-item" id="navLocalChanges" onclick="showView('localChanges')">
-                <span>📡 Local Changes</span>
-                <span class="nav-badge" id="countLocalChanges" style="background: var(--accent-yellow); color: #000;">0</span>
-            </div>
-            <div class="nav-item" id="navHistory" onclick="showView('history')">
-                <span>📋 History</span>
-            </div>
-        </div>
-
         <div class="sidebar-content">
-            <!-- Repo sub-filters (shown when Repositories view is active) -->
+            <!-- Navigation -->
+            <div class="nav-group">
+                <div class="nav-category" id="catNavigation">
+                    <div class="nav-category-header" onclick="toggleCategory('catNavigation')">
+                        <div class="nav-title">Navigation</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item active" id="navDashboard" onclick="showView('dashboard')">
+                            <span>🏠 Dashboard</span>
+                        </div>
+                        <div class="nav-item" id="navAddProject" onclick="showView('addProject')">
+                            <span>➕ Add Project</span>
+                        </div>
+                        <div class="nav-item" id="navRepos" onclick="showView('repos'); applyFilter('all')">
+                            <span>📁 Repositories</span>
+                            <span class="nav-badge" id="countAll">0</span>
+                        </div>
+                        <div class="nav-item" id="navForkSync" onclick="showView('forkSync')">
+                            <span>🔀 Fork Sync</span>
+                            <span class="nav-badge" id="countFork">0</span>
+                        </div>
+                        <div class="nav-item" id="navLocalChanges" onclick="showView('localChanges')">
+                            <span>📡 Local Changes</span>
+                            <span class="nav-badge" id="countLocalChanges" style="background: var(--accent-yellow); color: #000;">0</span>
+                        </div>
+                        <div class="nav-item" id="navHistory" onclick="showView('history')">
+                            <span>📋 History</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repo Filters -->
             <div class="nav-group" id="repoFiltersGroup" style="display:none;">
-                <div class="nav-title">Type</div>
-                <div class="nav-item" id="navAll" onclick="applyFilter('all')">
-                    <span>📁 All</span>
-                    <span class="nav-badge" id="countAllSub">0</span>
-                </div>
-                <div class="nav-item" id="navSource" onclick="applyFilter('source')">
-                    <span>🌿 Sources</span>
-                    <span class="nav-badge" id="countSource">0</span>
-                </div>
-                <div class="nav-item" id="navForkFilter" onclick="applyFilter('fork')">
-                    <span>🔀 Forks</span>
-                    <span class="nav-badge" id="countForkSub">0</span>
-                </div>
-
-                <div class="nav-title" style="margin-top: 8px;">Visibility</div>
-                <div class="nav-item" onclick="applyAdvancedFilter('public')">
-                    <span>🌍 Public</span>
-                    <span class="nav-badge" id="countPublicFilter">0</span>
-                </div>
-                <div class="nav-item" onclick="applyAdvancedFilter('private')">
-                    <span>🔐 Private</span>
-                    <span class="nav-badge" id="countPrivateFilter">0</span>
+                <div class="nav-category" id="catType">
+                    <div class="nav-category-header" onclick="toggleCategory('catType')">
+                        <div class="nav-title">Type</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" id="navAll" onclick="applyFilter('all')">
+                            <span>📁 All</span>
+                            <span class="nav-badge" id="countAllSub">0</span>
+                        </div>
+                        <div class="nav-item" id="navSource" onclick="applyFilter('source')">
+                            <span>🌿 Sources</span>
+                            <span class="nav-badge" id="countSource">0</span>
+                        </div>
+                        <div class="nav-item" id="navForkFilter" onclick="applyFilter('fork')">
+                            <span>🔀 Forks</span>
+                            <span class="nav-badge" id="countForkSub">0</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="nav-title" style="margin-top: 8px;">License</div>
-                <div class="nav-item" onclick="applyAdvancedFilter('has-license')">
-                    <span>📜 Has License</span>
-                    <span class="nav-badge" id="countHasLicense">0</span>
-                </div>
-                <div class="nav-item" onclick="applyAdvancedFilter('no-license')">
-                    <span>⚠️ No License</span>
-                    <span class="nav-badge" id="countNoLicense">0</span>
-                </div>
-
-                <div class="nav-title" style="margin-top: 8px;">Status</div>
-                <div class="nav-item" onclick="applyAdvancedFilter('has-description')">
-                    <span>📝 Has Description</span>
-                    <span class="nav-badge" id="countHasDesc">0</span>
-                </div>
-                <div class="nav-item" onclick="applyAdvancedFilter('no-description')">
-                    <span>📭 No Description</span>
-                    <span class="nav-badge" id="countNoDesc">0</span>
-                </div>
-                <div class="nav-item" onclick="applyAdvancedFilter('archived')">
-                    <span>📦 Archived</span>
-                    <span class="nav-badge" id="countArchived">0</span>
-                </div>
-                <div class="nav-item" onclick="applyAdvancedFilter('empty')">
-                    <span>🕳️ Empty (0 KB)</span>
-                    <span class="nav-badge" id="countEmpty">0</span>
+                <div class="nav-category" id="catVisibility">
+                    <div class="nav-category-header" onclick="toggleCategory('catVisibility')">
+                        <div class="nav-title">Visibility</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="applyAdvancedFilter('public')">
+                            <span>🌍 Public</span>
+                            <span class="nav-badge" id="countPublicFilter">0</span>
+                        </div>
+                        <div class="nav-item" onclick="applyAdvancedFilter('private')">
+                            <span>🔐 Private</span>
+                            <span class="nav-badge" id="countPrivateFilter">0</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="nav-title" style="margin-top: 8px;">Language</div>
-                <div id="languageFilters" style="max-height: 120px; overflow-y: auto;"></div>
-            </div>
+                <div class="nav-category" id="catLicense">
+                    <div class="nav-category-header" onclick="toggleCategory('catLicense')">
+                        <div class="nav-title">License</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="applyAdvancedFilter('has-license')">
+                            <span>📜 Has License</span>
+                            <span class="nav-badge" id="countHasLicense">0</span>
+                        </div>
+                        <div class="nav-item" onclick="applyAdvancedFilter('no-license')">
+                            <span>⚠️ No License</span>
+                            <span class="nav-badge" id="countNoLicense">0</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="nav-group">
-                <div class="nav-title">Actions</div>
-                <div class="nav-item" onclick="startAIRename()">
-                    <span>🧠 AI Smart Rename</span>
+                <div class="nav-category" id="catStatus">
+                    <div class="nav-category-header" onclick="toggleCategory('catStatus')">
+                        <div class="nav-title">Status</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="applyAdvancedFilter('has-description')">
+                            <span>📝 Has Description</span>
+                            <span class="nav-badge" id="countHasDesc">0</span>
+                        </div>
+                        <div class="nav-item" onclick="applyAdvancedFilter('no-description')">
+                            <span>📭 No Description</span>
+                            <span class="nav-badge" id="countNoDesc">0</span>
+                        </div>
+                        <div class="nav-item" onclick="applyAdvancedFilter('archived')">
+                            <span>📦 Archived</span>
+                            <span class="nav-badge" id="countArchived">0</span>
+                        </div>
+                        <div class="nav-item" onclick="applyAdvancedFilter('empty')">
+                            <span>🕳️ Empty (0 KB)</span>
+                            <span class="nav-badge" id="countEmpty">0</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
-                    <span>🗑️ Delete Selected</span>
-                </div>
-            </div>
 
-            <div class="nav-group">
-                <div class="nav-title">AI Tools</div>
-                <div class="nav-item" onclick="startAIDescription()">
-                    <span>🤖 AI Description</span>
-                </div>
-                <div class="nav-item" onclick="startAIReadme()">
-                    <span>📝 AI README Creator</span>
-                </div>
-                <div class="nav-item" onclick="showSetupInfo()">
-                    <span>📦 Setup / Clone Info</span>
-                </div>
-                <div class="nav-item" onclick="startAICommitFixer()">
-                    <span>✨ AI Commit Fixer</span>
-                </div>
-            </div>
-
-            <div class="nav-group">
-                <div class="nav-title">Organization</div>
-                <div class="nav-item" onclick="openVisibilityModal()">
-                    <span>🔐 Change Visibility</span>
-                </div>
-                <div class="nav-item" onclick="openTopicsModal()">
-                    <span>🏷️ Manage Topics</span>
-                </div>
-                <div class="nav-item" onclick="openLicenseModal()">
-                    <span>📜 Add License</span>
+                <div class="nav-category" id="catLanguage">
+                    <div class="nav-category-header" onclick="toggleCategory('catLanguage')">
+                        <div class="nav-title">Language</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div id="languageFilters" style="max-height: 120px; overflow-y: auto;"></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Actions -->
             <div class="nav-group">
-                <div class="nav-title">Analytics & Tools</div>
-                <div class="nav-item" onclick="openAnalysisModal()">
-                    <span>📊 Repo Analysis</span>
+                <div class="nav-category collapsed" id="catActions">
+                    <div class="nav-category-header" onclick="toggleCategory('catActions')">
+                        <div class="nav-title">Actions</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="startAIRename()">
+                            <span>🧠 AI Smart Rename</span>
+                        </div>
+                        <div class="nav-item" onclick="deleteSelected()" style="color: var(--danger);">
+                            <span>🗑️ Delete Selected</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="openRepoAnalyzerModal()">
-                    <span>🔍 Repo Inspector</span>
+            </div>
+
+            <!-- AI Tools -->
+            <div class="nav-group">
+                <div class="nav-category collapsed" id="catAITools">
+                    <div class="nav-category-header" onclick="toggleCategory('catAITools')">
+                        <div class="nav-title">AI Tools</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="startAIDescription()">
+                            <span>🤖 AI Description</span>
+                        </div>
+                        <div class="nav-item" onclick="startAIReadme()">
+                            <span>📝 AI README Creator</span>
+                        </div>
+                        <div class="nav-item" onclick="showSetupInfo()">
+                            <span>📦 Setup / Clone Info</span>
+                        </div>
+                        <div class="nav-item" onclick="startAICommitFixer()">
+                            <span>✨ AI Commit Fixer</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="showView('repos'); filterStaleRepos()">
-                    <span>🕐 Stale Repos</span>
+            </div>
+
+            <!-- Organization -->
+            <div class="nav-group">
+                <div class="nav-category collapsed" id="catOrganization">
+                    <div class="nav-category-header" onclick="toggleCategory('catOrganization')">
+                        <div class="nav-title">Organization</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="openVisibilityModal()">
+                            <span>🔐 Change Visibility</span>
+                        </div>
+                        <div class="nav-item" onclick="openTopicsModal()">
+                            <span>🏷️ Manage Topics</span>
+                        </div>
+                        <div class="nav-item" onclick="openLicenseModal()">
+                            <span>📜 Add License</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="showView('repos'); filterLargeRepos()">
-                    <span>💾 Large Repos</span>
-                </div>
-                <div class="nav-item" onclick="showView('repos'); filterUnchangedForks()">
-                    <span>🍴 Unused Forks</span>
+            </div>
+
+            <!-- Analytics & Tools -->
+            <div class="nav-group">
+                <div class="nav-category collapsed" id="catAnalytics">
+                    <div class="nav-category-header" onclick="toggleCategory('catAnalytics')">
+                        <div class="nav-title">Analytics & Tools</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" onclick="openAnalysisModal()">
+                            <span>📊 Repo Analysis</span>
+                        </div>
+                        <div class="nav-item" onclick="openRepoAnalyzerModal()">
+                            <span>🔍 Repo Inspector</span>
+                        </div>
+                        <div class="nav-item" onclick="showView('repos'); filterStaleRepos()">
+                            <span>🕐 Stale Repos</span>
+                        </div>
+                        <div class="nav-item" onclick="showView('repos'); filterLargeRepos()">
+                            <span>💾 Large Repos</span>
+                        </div>
+                        <div class="nav-item" onclick="showView('repos'); filterUnchangedForks()">
+                            <span>🍴 Unused Forks</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1093,7 +1237,7 @@
                         </svg>
                     </div>
                 </div>
-                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.0</div>
+                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.1.0</div>
             </div>
         </div>
     </div>
@@ -1304,6 +1448,7 @@
                             <th>Repository</th>
                             <th>Upstream</th>
                             <th>Default Branch</th>
+                            <th>Upstream Status</th>
                             <th>Last Updated</th>
                             <th>Sync Status</th>
                             <th>Action</th>
@@ -1366,8 +1511,7 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-box" style="position: relative; padding-top: 36px; max-width: 520px; width: 90%;">
             <div onclick="document.getElementById('settingsModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
 
             <!-- API Keys Section -->
@@ -1376,6 +1520,18 @@
             <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
             <label style="font-size:12px;">OpenRouter Key:</label>
             <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
+
+            <!-- AI Model Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">AI Model</div>
+            <select id="settingsAIModel" class="input-dark" style="width:100%; padding:8px; margin-bottom:4px;">
+                <option value="moonshotai/kimi-k2.5">Kimi K2.5 (moonshotai/kimi-k2.5)</option>
+                <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Free)</option>
+                <option value="google/gemma-3-27b-it:free">Gemma 3 27B (Free)</option>
+                <option value="meta-llama/llama-4-maverick:free">Llama 4 Maverick (Free)</option>
+                <option value="anthropic/claude-sonnet-4">Claude Sonnet 4</option>
+                <option value="openai/gpt-4o">GPT-4o</option>
+            </select>
+            <div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px;">Select AI model for all AI operations (rename, description, README, commits)</div>
 
             <!-- Defaults Section -->
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Publish Defaults</div>
@@ -1424,8 +1580,7 @@
         <div class="modal-box"
             style="max-width: 650px; font-size: 12px; line-height: 1.6; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('helpModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 16px 0; color: var(--accent-blue); font-size: 15px;">User Guide</h3>
 
             <div style="max-height: 450px; overflow-y: auto; padding-right: 8px;">
@@ -1543,8 +1698,7 @@
         <div class="modal-box"
             style="max-width: 900px; height: 80%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('renameModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Suggestions</h3>
             <div
                 style="flex: 1; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
@@ -1569,8 +1723,7 @@
     <div id="customModal" class="modal-overlay">
         <div class="modal-box" style="position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('customModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 id="modalTitle">Title</h3>
             <div id="modalContent" style="margin-bottom: 20px;">Content</div>
             <button class="btn-primary"
@@ -1583,8 +1736,7 @@
         <div class="modal-box"
             style="max-width: 800px; height: 70%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('descriptionModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-blue);">AI Description Generator</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 AI will analyze the README and suggest a professional description for each selected repository.
@@ -1614,8 +1766,7 @@
         <div class="modal-box"
             style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('readmeModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 10px 0; color: var(--accent-green);">AI README Creator</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">
                 AI will analyze the repository files and generate a professional README.md
@@ -1637,8 +1788,7 @@
     <div id="setupModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 700px; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('setupModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Setup / Clone Instructions</h3>
             <div id="setupContent" style="color: var(--text-secondary); font-size: 13px;">
                 <p>Select a repository first.</p>
@@ -1651,8 +1801,7 @@
         <div class="modal-box"
             style="max-width: 520px; max-height: 85%; display: flex; flex-direction: column; padding: 16px; position: relative;">
             <div onclick="document.getElementById('repoDetailModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <div id="repoDetailContent" style="flex: 1; overflow-y: auto;">
                 <p style="color: var(--text-secondary);">Loading...</p>
             </div>
@@ -1663,8 +1812,7 @@
     <div id="visibilityModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('visibilityModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Change Visibility</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Change the visibility of selected repositories.
@@ -1691,8 +1839,7 @@
     <div id="topicsModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 600px; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('topicsModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-yellow);">Manage Topics</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Add or remove topics from selected repositories. Topics help categorize and discover repositories.
@@ -1743,8 +1890,7 @@
     <div id="licenseModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 500px; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('licenseModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-green);">Add License</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Add a license file to selected repositories. This helps others understand how they can use your code.
@@ -1778,8 +1924,7 @@
         <div class="modal-box"
             style="max-width: 900px; max-height: 90%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('analysisModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-blue);">Repository Analysis</h3>
             <div id="analysisContent" style="flex: 1; overflow-y: auto; padding-right: 10px;">
                 <p style="color: var(--text-secondary); text-align: center; padding: 40px;">Click "Run Analysis" to scan
@@ -1798,8 +1943,7 @@
         <div class="modal-box"
             style="max-width: 900px; height: 85%; display: flex; flex-direction: column; position: relative; padding-top: 36px;">
             <div onclick="document.getElementById('repoAnalyzerModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin: 0 0 15px 0; color: var(--accent-purple);">Repo Inspector</h3>
             <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
                 Enter a GitHub repository URL to analyze its structure, technologies, and architecture. AI will create a
@@ -1844,8 +1988,7 @@
     <div id="aiCommitModal" class="modal-overlay">
         <div class="modal-box" style="position: relative; max-width: 900px; padding-top: 36px;">
             <div onclick="document.getElementById('aiCommitModal').style.display='none'"
-                style="position: absolute; top: 14px; left: 14px; background: #ff5f57; border: 1px solid #e0443e; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; z-index: 10;">
-            </div>
+                class="modal-close-btn" title="Close">✕</div>
             <h3 style="margin-top: 0; margin-bottom: 20px;">✨ AI Commit Fixer</h3>
 
             <div style="margin-bottom: 20px;">
@@ -1965,6 +2108,10 @@
         let currentMainView = 'dashboard'; // tracks the active main view
 
         // ── showView: switch between Dashboard / AddProject / Repos / ForkSync / History ──
+        function toggleCategory(id) {
+            document.getElementById(id).classList.toggle('collapsed');
+        }
+
         function showView(viewName) {
             currentMainView = viewName;
 
@@ -2366,6 +2513,8 @@
             document.getElementById('settingsCommitCustom').value    = tmplCustom;
             document.getElementById('settingsCommitCustom').style.display = tmplType === 'custom' ? 'block' : 'none';
 
+            document.getElementById('settingsAIModel').value = config.aiModel || 'moonshotai/kimi-k2.5';
+
             document.getElementById('settingsModal').style.display = 'flex';
         }
 
@@ -2386,7 +2535,8 @@
                 defaultBranch:        document.getElementById('settingsDefaultBranch').value,
                 autoGitignore:        document.getElementById('settingsAutoGitignore').checked,
                 commitTemplateType:   document.getElementById('settingsCommitTemplate').value,
-                commitTemplateCustom: document.getElementById('settingsCommitCustom').value
+                commitTemplateCustom: document.getElementById('settingsCommitCustom').value,
+                aiModel:             document.getElementById('settingsAIModel').value
             };
             await window.api.saveAppConfig(newConfig);
             cachedAppConfig = { ...cachedAppConfig, ...newConfig };
@@ -2451,7 +2601,19 @@
 
             if (!routerKey) { showToast('Add AI Key in Settings.', 'warning'); openSettings(); return; }
 
-            const results = await window.api.analyzeReposAI({ token, routerKey, repos: selected });
+            let results;
+            try {
+                results = await window.api.analyzeReposAI({ token, routerKey, repos: selected });
+            } catch (e) {
+                showToast('AI analysis failed: ' + e.message, 'error');
+                document.getElementById('status').innerText = '';
+                return;
+            }
+            if (!results || results.length === 0) {
+                showToast('No rename suggestions could be generated.', 'warning');
+                document.getElementById('status').innerText = '';
+                return;
+            }
 
             renameProposals = results;
             renderRenameTable();
@@ -2463,13 +2625,25 @@
             const tbody = document.getElementById('renameTableBody');
             tbody.innerHTML = '';
             renameProposals.forEach((p, i) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${p.currentName}</td>
-                        <td><input type="text" id="prop-${i}" value="${p.proposed}" style="background:var(--bg-input); color:white; border:none; padding:4px;"></td>
-                        <td id="stat-${i}">Ready</td>
-                    </tr>
-                 `;
+                const tr = document.createElement('tr');
+
+                const tdCurrent = document.createElement('td');
+                tdCurrent.textContent = p.currentName;
+
+                const tdProposed = document.createElement('td');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `prop-${i}`;
+                input.value = p.proposed;
+                input.style.cssText = 'background:var(--bg-input); color:white; border:none; padding:4px;';
+                tdProposed.appendChild(input);
+
+                const tdStat = document.createElement('td');
+                tdStat.id = `stat-${i}`;
+                tdStat.textContent = 'Ready';
+
+                tr.append(tdCurrent, tdProposed, tdStat);
+                tbody.appendChild(tr);
             });
         }
 
@@ -2514,7 +2688,19 @@
                 return;
             }
 
-            const results = await window.api.generateDescription({ token, routerKey, repos: selected });
+            let results;
+            try {
+                results = await window.api.generateDescription({ token, routerKey, repos: selected });
+            } catch (e) {
+                showToast('AI description generation failed: ' + e.message, 'error');
+                document.getElementById('status').innerText = '';
+                return;
+            }
+            if (!results || results.length === 0) {
+                showToast('No descriptions could be generated.', 'warning');
+                document.getElementById('status').innerText = '';
+                return;
+            }
 
             descriptionProposals = results;
             renderDescriptionTable();
@@ -2526,13 +2712,28 @@
             const tbody = document.getElementById('descriptionTableBody');
             tbody.innerHTML = '';
             descriptionProposals.forEach((p, i) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="padding: 8px; font-weight: 500; color: var(--text-primary);">${p.repoName}</td>
-                        <td style="padding: 8px;"><input type="text" id="desc-${i}" value="${p.description}" style="width: 100%; background:var(--bg-input); color:white; border:1px solid var(--border-color); padding:6px; border-radius: 4px;"></td>
-                        <td style="padding: 8px;" id="desc-stat-${i}">Ready</td>
-                    </tr>
-                `;
+                const tr = document.createElement('tr');
+
+                const tdName = document.createElement('td');
+                tdName.style.cssText = 'padding: 8px; font-weight: 500; color: var(--text-primary);';
+                tdName.textContent = p.repoName;
+
+                const tdDesc = document.createElement('td');
+                tdDesc.style.padding = '8px';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `desc-${i}`;
+                input.value = p.description;
+                input.style.cssText = 'width: 100%; background:var(--bg-input); color:white; border:1px solid var(--border-color); padding:6px; border-radius: 4px;';
+                tdDesc.appendChild(input);
+
+                const tdStat = document.createElement('td');
+                tdStat.style.padding = '8px';
+                tdStat.id = `desc-stat-${i}`;
+                tdStat.textContent = 'Ready';
+
+                tr.append(tdName, tdDesc, tdStat);
+                tbody.appendChild(tr);
             });
         }
 
@@ -3361,36 +3562,54 @@ npm start</pre>
             resultsDiv.innerHTML = '';
             results.forEach(item => {
                 const row = document.createElement('div');
-                row.style.background = 'var(--bg-body)';
-                row.style.padding = '10px';
-                row.style.marginBottom = '8px';
-                row.style.borderRadius = '6px';
-                row.style.border = '1px solid var(--border-color)';
+                row.style.cssText = 'background:var(--bg-body); padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border-color);';
 
-                row.innerHTML = `
-                    <div style="font-size: 11px; opacity: 0.7; margin-bottom: 4px;">SHA: ${item.sha.substring(0, 7)}</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div style="background: rgba(255,0,0,0.05); padding: 8px; border-radius: 4px;">
-                            <div style="font-weight:bold; font-size: 11px; color: var(--danger); margin-bottom:4px;">Original</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">${item.original}</div>
-                        </div>
-                         <div style="background: rgba(0,255,0,0.05); padding: 8px; border-radius: 4px; position:relative;">
-                            <div style="font-weight:bold; font-size: 11px; color: var(--accent-green); margin-bottom:4px;">AI Suggestion</div>
-                            <div style="font-size: 12px; font-weight: 500;">${item.suggestion}</div>
-                            <div style="position:absolute; top: 4px; right: 4px; display:flex; gap:4px;">
-                                <button onclick="navigator.clipboard.writeText('${item.suggestion.replace(/'/g, "\\'")}'); showToast('Copied!')" 
-                                    style="background: var(--bg-input); border: 1px solid var(--border-color); cursor: pointer; border-radius: 4px; font-size: 10px; padding: 2px 6px;">
-                                    Copy
-                                </button>
-                                <button onclick="applyCommitFix('${item.sha}', '${item.suggestion.replace(/'/g, "\\'")}')"
-                                    style="background: var(--accent-blue); color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 10px; padding: 2px 6px;"
-                                    title="DANGER: This will rewrite history!">
-                                    Apply Fix
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const shaDiv = document.createElement('div');
+                shaDiv.style.cssText = 'font-size:11px; opacity:0.7; margin-bottom:4px;';
+                shaDiv.textContent = `SHA: ${item.sha.substring(0, 7)}`;
+
+                const grid = document.createElement('div');
+                grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:10px;';
+
+                // Original
+                const origBox = document.createElement('div');
+                origBox.style.cssText = 'background:rgba(255,0,0,0.05); padding:8px; border-radius:4px;';
+                const origLabel = document.createElement('div');
+                origLabel.style.cssText = 'font-weight:bold; font-size:11px; color:var(--danger); margin-bottom:4px;';
+                origLabel.textContent = 'Original';
+                const origText = document.createElement('div');
+                origText.style.cssText = 'font-size:12px; color:var(--text-secondary);';
+                origText.textContent = item.original;
+                origBox.append(origLabel, origText);
+
+                // Suggestion
+                const sugBox = document.createElement('div');
+                sugBox.style.cssText = 'background:rgba(0,255,0,0.05); padding:8px; border-radius:4px; position:relative;';
+                const sugLabel = document.createElement('div');
+                sugLabel.style.cssText = 'font-weight:bold; font-size:11px; color:var(--accent-green); margin-bottom:4px;';
+                sugLabel.textContent = 'AI Suggestion';
+                const sugText = document.createElement('div');
+                sugText.style.cssText = 'font-size:12px; font-weight:500;';
+                sugText.textContent = item.suggestion;
+
+                const btnGroup = document.createElement('div');
+                btnGroup.style.cssText = 'position:absolute; top:4px; right:4px; display:flex; gap:4px;';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = 'Copy';
+                copyBtn.style.cssText = 'background:var(--bg-input); border:1px solid var(--border-color); cursor:pointer; border-radius:4px; font-size:10px; padding:2px 6px;';
+                copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(item.suggestion); showToast('Copied!'); });
+
+                const applyBtn = document.createElement('button');
+                applyBtn.textContent = 'Apply Fix';
+                applyBtn.title = 'DANGER: This will rewrite history!';
+                applyBtn.style.cssText = 'background:var(--accent-blue); color:white; border:none; cursor:pointer; border-radius:4px; font-size:10px; padding:2px 6px;';
+                applyBtn.addEventListener('click', () => applyCommitFix(item.sha, item.suggestion));
+
+                btnGroup.append(copyBtn, applyBtn);
+                sugBox.append(sugLabel, sugText, btnGroup);
+                grid.append(origBox, sugBox);
+                row.append(shaDiv, grid);
                 resultsDiv.appendChild(row);
             });
         }
@@ -3931,6 +4150,9 @@ npm start</pre>
                     </td>
                     <td style="font-size:11px; color:var(--text-secondary);">${escHtml(upstream)}</td>
                     <td style="font-size:12px;">${escHtml(r.default_branch || 'main')}</td>
+                    <td id="forkUpstream${i}" style="font-size:11px;">
+                        <span style="color:var(--text-secondary);">Checking…</span>
+                    </td>
                     <td style="font-size:11px; color:var(--text-secondary);">${updated}</td>
                     <td id="forkStatus${i}">${statusChip}</td>
                     <td><button class="btn-primary" style="padding:4px 12px; font-size:11px; background:#8b5cf6;" onclick="syncSingleFork(${i})">Sync</button></td>
@@ -3938,6 +4160,51 @@ npm start</pre>
             }).join('');
 
             document.getElementById('btnSyncAll').disabled = false;
+
+            // Check upstream status for each fork in parallel
+            checkAllForkStatuses();
+        }
+
+        async function checkAllForkStatuses() {
+            const token = await window.api.getToken();
+            if (!token) return;
+
+            const promises = forkRepos.map(async (r, i) => {
+                const cell = document.getElementById(`forkUpstream${i}`);
+                try {
+                    const res = await window.api.checkForkStatus({ token, fullName: r.full_name });
+                    if (!res.success) {
+                        cell.innerHTML = '<span style="color:var(--text-secondary);">—</span>';
+                        return;
+                    }
+
+                    forkRepos[i]._behind = res.behind;
+                    forkRepos[i]._ahead = res.ahead;
+                    forkRepos[i]._upstreamStatus = res.status;
+
+                    if (res.status === 'identical') {
+                        cell.innerHTML = '<span class="status-chip chip-synced" style="font-size:10px;">✓ Up to date</span>';
+                    } else if (res.behind > 0 && res.ahead === 0) {
+                        cell.innerHTML = `<span class="status-chip" style="font-size:10px; background:var(--accent-yellow); color:#000;">⬇ ${res.behind} commit${res.behind > 1 ? 's' : ''} behind</span>`;
+                    } else if (res.ahead > 0 && res.behind === 0) {
+                        cell.innerHTML = `<span class="status-chip" style="font-size:10px; background:var(--accent-blue); color:#fff;">⬆ ${res.ahead} commit${res.ahead > 1 ? 's' : ''} ahead</span>`;
+                    } else if (res.status === 'diverged') {
+                        cell.innerHTML = `<span class="status-chip" style="font-size:10px; background:var(--accent-purple); color:#fff;">⬆${res.ahead} ⬇${res.behind} diverged</span>`;
+                    } else {
+                        cell.innerHTML = '<span style="color:var(--text-secondary);">—</span>';
+                    }
+                } catch (e) {
+                    cell.innerHTML = '<span style="color:var(--text-secondary);">—</span>';
+                }
+            });
+
+            await Promise.allSettled(promises);
+
+            // Update fork badge with count of forks that need sync
+            const needsSync = forkRepos.filter(r => r._behind > 0).length;
+            if (needsSync > 0) {
+                document.getElementById('forkSyncStatus').innerText = `${needsSync} fork(s) have upstream updates available`;
+            }
         }
 
         function chipHtmlFork(status, msg) {
