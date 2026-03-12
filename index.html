@@ -8,13 +8,10 @@
     <!-- Font: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
+        :root, [data-theme="dark"] {
             --bg-body: #1e1e1e;
-            /* Darker DodoHub-like background */
             --bg-sidebar: #252526;
-            /* Slightly lighter sidebar */
             --bg-card: #2d2d30;
-            /* Card background */
             --bg-input: #3e3e42;
             --border-color: #454545;
             --text-primary: #ffffff;
@@ -24,6 +21,46 @@
             --accent-blue: #58a6ff;
             --accent-purple: #a371f7;
             --danger: #f85149;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f5f5f5;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #e8e8e8;
+            --border-color: #d1d5db;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --accent-green: #16a34a;
+            --accent-yellow: #ca8a04;
+            --accent-blue: #2563eb;
+            --accent-purple: #7c3aed;
+            --danger: #dc2626;
+        }
+
+        [data-theme="light"] .win-titlebar {
+            background: #ffffff;
+        }
+
+        [data-theme="light"] .nav-item:hover,
+        [data-theme="light"] .nav-item.active {
+            background-color: rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="light"] .nav-category-header:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="light"] .modal-close-btn {
+            color: #6b7280;
+        }
+
+        [data-theme="light"] .btn-primary {
+            background: #2563eb;
+        }
+
+        [data-theme="light"] .status-chip {
+            border-color: #d1d5db;
         }
 
         body {
@@ -275,7 +312,7 @@
         .input-dark {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: white;
+            color: var(--text-primary);
             padding: 6px 10px;
             border-radius: 6px;
             font-family: inherit;
@@ -285,7 +322,7 @@
 
         .btn-primary {
             background: var(--accent-green);
-            color: white;
+            color: #fff;
             border: none;
             padding: 6px 12px;
             border-radius: 6px;
@@ -296,7 +333,7 @@
 
         .btn-dark {
             background: var(--bg-input);
-            color: white;
+            color: var(--text-primary);
             border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 6px;
@@ -552,7 +589,7 @@
             margin-bottom: 15px;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: white;
+            color: var(--text-primary);
             border-radius: 6px;
             box-sizing: border-box;
         }
@@ -875,7 +912,7 @@
         .pub-table select {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: white;
+            color: var(--text-primary);
             padding: 5px 8px;
             border-radius: 5px;
             font-family: inherit;
@@ -1216,6 +1253,9 @@
         </div>
 
         <div class="sidebar-footer">
+            <div class="nav-item" onclick="toggleTheme()">
+                <span id="themeToggleLabel">☀️ Light Mode</span>
+            </div>
             <div class="nav-item" onclick="openSettings()">
                 <span>⚙️ Settings</span>
             </div>
@@ -1556,6 +1596,20 @@
                 <label for="settingsAutoGitignore" style="font-size:12px; cursor:pointer;">Auto-generate .gitignore by default</label>
             </div>
 
+            <!-- Appearance Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Appearance</div>
+            <select id="settingsTheme" class="input-dark" style="width:100%; padding:8px; margin-bottom:8px;" onchange="applyTheme(this.value)">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+            </select>
+
+            <!-- System Section -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">System</div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <input type="checkbox" id="settingsAutoStart" style="cursor:pointer; transform:scale(1.1);">
+                <label for="settingsAutoStart" style="font-size:12px; cursor:pointer;">Launch at system startup (minimized to tray)</label>
+            </div>
+
             <!-- Commit Template Section -->
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Default Commit Template</div>
             <select id="settingsCommitTemplate" class="input-dark" style="width:100%; padding:8px; margin-bottom:8px;" onchange="onSettingsTemplateChange()">
@@ -1776,7 +1830,7 @@
             </div>
             <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
                 <textarea id="readmeContent"
-                    style="flex: 1; width: 100%; background: var(--bg-input); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; resize: none; box-sizing: border-box;"></textarea>
+                    style="flex: 1; width: 100%; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; resize: none; box-sizing: border-box;"></textarea>
             </div>
             <div style="text-align: right; margin-top: 10px;">
                 <button id="btnSaveReadme" class="btn-primary" onclick="saveReadmeToRepo()">Save to Repository</button>
@@ -2111,6 +2165,33 @@
         function toggleCategory(id) {
             document.getElementById(id).classList.toggle('collapsed');
         }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const label = document.getElementById('themeToggleLabel');
+            if (label) {
+                label.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            // Save preference
+            window.api.saveAppConfig({ theme: next });
+            if (cachedAppConfig) cachedAppConfig.theme = next;
+            const sel = document.getElementById('settingsTheme');
+            if (sel) sel.value = next;
+        }
+
+        // Apply saved theme on load
+        (async function initTheme() {
+            try {
+                const config = await window.api.getAppConfig();
+                if (config && config.theme) applyTheme(config.theme);
+            } catch (e) {}
+        })();
 
         function showView(viewName) {
             currentMainView = viewName;
@@ -2514,6 +2595,8 @@
             document.getElementById('settingsCommitCustom').style.display = tmplType === 'custom' ? 'block' : 'none';
 
             document.getElementById('settingsAIModel').value = config.aiModel || 'moonshotai/kimi-k2.5';
+            document.getElementById('settingsTheme').value = config.theme || 'dark';
+            document.getElementById('settingsAutoStart').checked = config.autoStart === true;
 
             document.getElementById('settingsModal').style.display = 'flex';
         }
@@ -2536,9 +2619,13 @@
                 autoGitignore:        document.getElementById('settingsAutoGitignore').checked,
                 commitTemplateType:   document.getElementById('settingsCommitTemplate').value,
                 commitTemplateCustom: document.getElementById('settingsCommitCustom').value,
-                aiModel:             document.getElementById('settingsAIModel').value
+                aiModel:             document.getElementById('settingsAIModel').value,
+                theme:               document.getElementById('settingsTheme').value,
+                autoStart:           document.getElementById('settingsAutoStart').checked
             };
             await window.api.saveAppConfig(newConfig);
+            await window.api.setAutoStart(newConfig.autoStart);
+            applyTheme(newConfig.theme);
             cachedAppConfig = { ...cachedAppConfig, ...newConfig };
             const tmplType   = newConfig.commitTemplateType;
             const tmplCustom = newConfig.commitTemplateCustom;
@@ -2635,7 +2722,7 @@
                 input.type = 'text';
                 input.id = `prop-${i}`;
                 input.value = p.proposed;
-                input.style.cssText = 'background:var(--bg-input); color:white; border:none; padding:4px;';
+                input.style.cssText = 'background:var(--bg-input); color:var(--text-primary); border:none; padding:4px;';
                 tdProposed.appendChild(input);
 
                 const tdStat = document.createElement('td');
@@ -2724,7 +2811,7 @@
                 input.type = 'text';
                 input.id = `desc-${i}`;
                 input.value = p.description;
-                input.style.cssText = 'width: 100%; background:var(--bg-input); color:white; border:1px solid var(--border-color); padding:6px; border-radius: 4px;';
+                input.style.cssText = 'width: 100%; background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color); padding:6px; border-radius: 4px;';
                 tdDesc.appendChild(input);
 
                 const tdStat = document.createElement('td');
@@ -2857,14 +2944,14 @@
                     <p style="margin: 0 0 5px 0; font-size: 12px; color: var(--text-secondary);">HTTPS:</p>
                     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                         <input type="text" value="${repo.cloneUrl}" readonly 
-                            style="flex: 1; background: var(--bg-input); color: white; border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
+                            style="flex: 1; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
                         <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.cloneUrl}'); this.innerText='✓';" style="padding: 8px 12px;">📋</button>
                     </div>
 
                     <p style="margin: 0 0 5px 0; font-size: 12px; color: var(--text-secondary);">SSH:</p>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" value="${repo.sshUrl}" readonly 
-                            style="flex: 1; background: var(--bg-input); color: white; border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
+                            style="flex: 1; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; font-size: 11px;">
                         <button class="btn-dark" onclick="navigator.clipboard.writeText('${repo.sshUrl}'); this.innerText='✓';" style="padding: 8px 12px;">📋</button>
                     </div>
                 </div>

@@ -85,5 +85,8 @@ contextBridge.exposeInMainWorld('api', {
 
     // App Config (commit templates, defaults)
     getAppConfig: () => ipcRenderer.invoke('getAppConfig'),
-    saveAppConfig: (update) => ipcRenderer.invoke('saveAppConfig', update)
+    saveAppConfig: (update) => ipcRenderer.invoke('saveAppConfig', update),
+
+    // System
+    setAutoStart: (enabled) => ipcRenderer.invoke('setAutoStart', enabled)
 });

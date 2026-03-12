@@ -94,9 +94,17 @@ function createTray() {
     });
 }
 
+// Check if launched at startup (--hidden flag or login item)
+const launchedAtStartup = process.argv.includes('--hidden') || app.getLoginItemSettings().wasOpenedAtLogin;
+
 app.whenReady().then(() => {
     createWindow();
     createTray();
+
+    // If launched at startup, keep window hidden (tray only)
+    if (launchedAtStartup) {
+        mainWindow.hide();
+    }
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -2112,6 +2120,19 @@ function saveConfig(update) {
 
 ipcMain.handle('getAppConfig', async () => loadConfig());
 ipcMain.handle('saveAppConfig', async (event, update) => saveConfig(update));
+
+ipcMain.handle('setAutoStart', async (event, enabled) => {
+    try {
+        app.setLoginItemSettings({
+            openAtLogin: enabled,
+            args: ['--hidden']
+        });
+        return true;
+    } catch (e) {
+        console.error('Failed to set auto start:', e);
+        return false;
+    }
+});
 
 // ─── Project Type Detection ────────────────────────────────────────────────────
 function detectProjectType(folderPath) {
