@@ -1,0 +1,7 @@
+{
+  "defaultVisibility": "public",
+  "defaultBranch": "main",
+  "autoGitignore": true,
+  "commitTemplateType": "simple",
+  "commitTemplateCustom": ""
+}

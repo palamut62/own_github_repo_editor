@@ -45,8 +45,8 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid var(--border-color);
-            padding-top: 40px;
-            /* Space for Traffic Lights */
+            padding-top: 32px;
+            /* Space for Windows Title Bar */
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
@@ -76,49 +76,69 @@
             background: var(--text-secondary);
         }
 
-        .traffic-lights {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            display: flex;
-            gap: 8px;
-            -webkit-app-region: no-drag;
-            /* Buttons clickable */
-            z-index: 1000;
-        }
-
-        .drag-region {
+        .win-titlebar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 40px;
+            height: 32px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
             -webkit-app-region: drag;
-            z-index: 999;
+            z-index: 1000;
         }
 
-        .control-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+        .win-titlebar-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .win-titlebar-title img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .win-controls {
+            margin-left: auto;
+            display: flex;
+            -webkit-app-region: no-drag;
+            height: 100%;
+        }
+
+        .win-btn {
+            width: 46px;
+            height: 32px;
             border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe MDL2 Assets', 'Segoe Fluent Icons', sans-serif;
         }
 
-        .btn-close {
-            background: #ff5f56;
+        .win-btn:hover {
+            background: rgba(255,255,255,0.08);
         }
 
-        .btn-minimize {
-            background: #ffbd2e;
+        .win-btn-close:hover {
+            background: #e81123;
+            color: white;
         }
 
-        .btn-maximize {
-            background: #27c93f;
-        }
-
-        .control-btn:hover {
-            filter: brightness(0.8);
+        .win-btn svg {
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
         }
 
         .nav-group {
@@ -173,6 +193,7 @@
             flex-direction: column;
             overflow: hidden;
             background: var(--bg-body);
+            padding-top: 32px;
         }
 
         .header {
@@ -862,7 +883,7 @@
         .chip-running  { background: rgba(88,166,255,0.15);  color: var(--accent-blue); }
         .chip-success  { background: rgba(63,185,80,0.15);   color: var(--accent-green); }
         .chip-error    { background: rgba(248,81,73,0.15);   color: var(--danger); }
-        .chip-synced   { background: rgba(139,92,246,0.15);  color: #a78bfa; }
+        .chip-synced   { background: rgba(63,185,80,0.15);   color: var(--accent-green); }
         .chip-conflict { background: rgba(210,153,34,0.15);  color: var(--accent-yellow); }
         .chip-not-eligible { background: rgba(170,170,170,0.15); color: var(--text-secondary); }
         .chip-permission-error { background: rgba(248,81,73,0.15); color: var(--danger); }
@@ -870,12 +891,22 @@
 </head>
 
 <body>
-    <!-- Window Drag Region -->
-    <div class="drag-region"></div>
-    <div class="traffic-lights">
-        <button class="control-btn btn-close" onclick="window.api.close()"></button>
-        <button class="control-btn btn-minimize" onclick="window.api.minimize()"></button>
-        <button class="control-btn btn-maximize" onclick="window.api.maximize()"></button>
+    <!-- Windows Title Bar -->
+    <div class="win-titlebar">
+        <div class="win-titlebar-title">
+            <span>GitHub Repo Cleaner AI</span>
+        </div>
+        <div class="win-controls">
+            <button class="win-btn" onclick="window.api.minimize()" title="Minimize">
+                <svg viewBox="0 0 10 1"><rect width="10" height="1"/></svg>
+            </button>
+            <button class="win-btn" onclick="window.api.maximize()" title="Maximize">
+                <svg viewBox="0 0 10 10"><rect x="0" y="0" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+            </button>
+            <button class="win-btn win-btn-close" onclick="window.api.close()" title="Close">
+                <svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg>
+            </button>
+        </div>
     </div>
 
     <!-- Toast Container -->
@@ -913,6 +944,10 @@
                 <span>🔀 Fork Sync</span>
                 <span class="nav-badge" id="countFork">0</span>
             </div>
+            <div class="nav-item" id="navLocalChanges" onclick="showView('localChanges')">
+                <span>📡 Local Changes</span>
+                <span class="nav-badge" id="countLocalChanges" style="background: var(--accent-yellow); color: #000;">0</span>
+            </div>
             <div class="nav-item" id="navHistory" onclick="showView('history')">
                 <span>📋 History</span>
             </div>
@@ -921,7 +956,7 @@
         <div class="sidebar-content">
             <!-- Repo sub-filters (shown when Repositories view is active) -->
             <div class="nav-group" id="repoFiltersGroup" style="display:none;">
-                <div class="nav-title">Filter</div>
+                <div class="nav-title">Type</div>
                 <div class="nav-item" id="navAll" onclick="applyFilter('all')">
                     <span>📁 All</span>
                     <span class="nav-badge" id="countAllSub">0</span>
@@ -934,6 +969,47 @@
                     <span>🔀 Forks</span>
                     <span class="nav-badge" id="countForkSub">0</span>
                 </div>
+
+                <div class="nav-title" style="margin-top: 8px;">Visibility</div>
+                <div class="nav-item" onclick="applyAdvancedFilter('public')">
+                    <span>🌍 Public</span>
+                    <span class="nav-badge" id="countPublicFilter">0</span>
+                </div>
+                <div class="nav-item" onclick="applyAdvancedFilter('private')">
+                    <span>🔐 Private</span>
+                    <span class="nav-badge" id="countPrivateFilter">0</span>
+                </div>
+
+                <div class="nav-title" style="margin-top: 8px;">License</div>
+                <div class="nav-item" onclick="applyAdvancedFilter('has-license')">
+                    <span>📜 Has License</span>
+                    <span class="nav-badge" id="countHasLicense">0</span>
+                </div>
+                <div class="nav-item" onclick="applyAdvancedFilter('no-license')">
+                    <span>⚠️ No License</span>
+                    <span class="nav-badge" id="countNoLicense">0</span>
+                </div>
+
+                <div class="nav-title" style="margin-top: 8px;">Status</div>
+                <div class="nav-item" onclick="applyAdvancedFilter('has-description')">
+                    <span>📝 Has Description</span>
+                    <span class="nav-badge" id="countHasDesc">0</span>
+                </div>
+                <div class="nav-item" onclick="applyAdvancedFilter('no-description')">
+                    <span>📭 No Description</span>
+                    <span class="nav-badge" id="countNoDesc">0</span>
+                </div>
+                <div class="nav-item" onclick="applyAdvancedFilter('archived')">
+                    <span>📦 Archived</span>
+                    <span class="nav-badge" id="countArchived">0</span>
+                </div>
+                <div class="nav-item" onclick="applyAdvancedFilter('empty')">
+                    <span>🕳️ Empty (0 KB)</span>
+                    <span class="nav-badge" id="countEmpty">0</span>
+                </div>
+
+                <div class="nav-title" style="margin-top: 8px;">Language</div>
+                <div id="languageFilters" style="max-height: 120px; overflow-y: auto;"></div>
             </div>
 
             <div class="nav-group">
@@ -1080,17 +1156,17 @@
                     <div class="stat-value" id="dashForks">—</div>
                     <div class="stat-label">Forks</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="showView('repos'); filterByVisibility('private')">
                     <div class="stat-icon">🔐</div>
                     <div class="stat-value" id="dashPrivate">—</div>
                     <div class="stat-label">Private</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="showView('repos'); filterByVisibility('public')">
                     <div class="stat-icon">🌍</div>
                     <div class="stat-value" id="dashPublic">—</div>
                     <div class="stat-label">Public</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="showView('repos'); filterStaleRepos()">
                     <div class="stat-icon">🕐</div>
                     <div class="stat-value" id="dashStale">—</div>
                     <div class="stat-label">Stale (&gt;6mo)</div>
@@ -1234,6 +1310,35 @@
                         </tr>
                     </thead>
                     <tbody id="forkSyncTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══ LOCAL CHANGES VIEW ════════════════════════════════════════════ -->
+        <div id="view-localChanges" class="view-section" style="display:none; flex-direction:column; flex:1; overflow:hidden; padding: 0 30px 20px;">
+            <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <button class="btn-primary" onclick="loadLocalChangesView()">🔄 Scan Projects</button>
+                <button class="btn-primary" style="background: var(--accent-green);" id="btnPushAll" onclick="pushAllChanged()" disabled>🚀 Push All Changed</button>
+                <div style="flex:1;"></div>
+                <span id="localChangesStatus" style="font-size: 12px; color: var(--text-secondary);"></span>
+            </div>
+            <div style="flex: 1; overflow-y: auto; margin-top: 16px;">
+                <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 40px 0;" id="localChangesEmpty">
+                    Click "Scan Projects" to check your published repos for local changes.
+                </div>
+                <table class="pub-table" id="localChangesTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="localSelectAll" onclick="toggleLocalSelectAll()"></th>
+                            <th>Project</th>
+                            <th>Branch</th>
+                            <th>Uncommitted</th>
+                            <th>Unpushed</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="localChangesTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -1390,12 +1495,42 @@
                     </p>
                 </div>
 
-                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px;">
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <h4 style="margin: 0 0 8px 0; color: var(--accent-blue); font-size: 12px;">Fork Management</h4>
                     <p style="margin: 0; color: var(--text-secondary);">
                         Double-click a forked repository to see sync status with upstream.
                         Use the <strong>Sync</strong> button to update your fork with the latest changes from the parent
                         repository.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-body); border-radius: 6px; padding: 12px; border: 1px solid rgba(255,165,0,0.3);">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-yellow); font-size: 12px;">⚠️ GitHub Token Permissions (Scopes)</h4>
+                    <p style="margin: 0 0 8px 0; color: var(--text-secondary);">
+                        Your GitHub Personal Access Token must have the correct scopes for each feature to work:
+                    </p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px; color: var(--text-secondary);">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                                <th style="padding: 4px 8px;">Feature</th>
+                                <th style="padding: 4px 8px;">Required Scope</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="padding: 4px 8px;">View Repos / Dashboard</td><td style="padding: 4px 8px;"><code>repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Delete Repos</td><td style="padding: 4px 8px;"><code>delete_repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Fork Sync</td><td style="padding: 4px 8px;"><code>repo</code> (full control)</td></tr>
+                            <tr><td style="padding: 4px 8px;">Change Visibility</td><td style="padding: 4px 8px;"><code>repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Update Topics</td><td style="padding: 4px 8px;"><code>repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Add License</td><td style="padding: 4px 8px;"><code>repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Rename Repos</td><td style="padding: 4px 8px;"><code>repo</code></td></tr>
+                            <tr><td style="padding: 4px 8px;">Publish Projects</td><td style="padding: 4px 8px;"><code>repo</code>, <code>workflow</code></td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin: 8px 0 0 0; color: var(--accent-yellow); font-size: 11px;">
+                        💡 <strong>Tip:</strong> If you get "Permission denied" errors, go to
+                        <strong>GitHub → Settings → Developer settings → Personal access tokens</strong>
+                        and make sure the <code>repo</code> scope (Full control of private repositories) is checked.
                     </p>
                 </div>
 
@@ -1843,17 +1978,18 @@
             document.getElementById('repoFiltersGroup').style.display = 'none';
 
             // Update top-level nav active state
-            ['navDashboard','navAddProject','navRepos','navForkSync','navHistory'].forEach(id => {
+            ['navDashboard','navAddProject','navRepos','navForkSync','navLocalChanges','navHistory'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.remove('active');
             });
 
             const titles = {
-                dashboard:  '🏠 Dashboard',
-                addProject: '➕ Add Project',
-                repos:      '📁 Repositories',
-                forkSync:   '🔀 Fork Sync',
-                history:    '📋 History'
+                dashboard:    '🏠 Dashboard',
+                addProject:   '➕ Add Project',
+                repos:        '📁 Repositories',
+                forkSync:     '🔀 Fork Sync',
+                localChanges: '📡 Local Changes',
+                history:      '📋 History'
             };
             document.getElementById('pageTitle').innerText = titles[viewName] || viewName;
 
@@ -1875,6 +2011,11 @@
                 case 'forkSync':
                     document.getElementById('view-forkSync').style.display = 'flex';
                     document.getElementById('navForkSync').classList.add('active');
+                    break;
+                case 'localChanges':
+                    document.getElementById('view-localChanges').style.display = 'flex';
+                    document.getElementById('navLocalChanges').classList.add('active');
+                    loadLocalChangesView();
                     break;
                 case 'history':
                     document.getElementById('view-history').style.display = 'flex';
@@ -1936,7 +2077,11 @@
             }
         }
 
-        function applyFilter(type) {
+        async function applyFilter(type) {
+            // Auto-load repos if not loaded yet
+            if (allRepos.length === 0) {
+                await loadRepos();
+            }
             currentFilter = type;
             currentPage = 1;
 
@@ -1959,6 +2104,94 @@
 
             sortRepos();
             renderPage();
+        }
+
+        function applyAdvancedFilter(type) {
+            if (allRepos.length === 0) { loadRepos(); return; }
+
+            const titleMap = {
+                'public':          '🌍 Public Repos',
+                'private':         '🔐 Private Repos',
+                'has-license':     '📜 Licensed Repos',
+                'no-license':      '⚠️ No License',
+                'has-description': '📝 With Description',
+                'no-description':  '📭 No Description',
+                'archived':        '📦 Archived',
+                'empty':           '🕳️ Empty Repos'
+            };
+
+            switch (type) {
+                case 'public':
+                    filteredRepos = allRepos.filter(r => !r.private);
+                    break;
+                case 'private':
+                    filteredRepos = allRepos.filter(r => r.private);
+                    break;
+                case 'has-license':
+                    filteredRepos = allRepos.filter(r => r.license);
+                    break;
+                case 'no-license':
+                    filteredRepos = allRepos.filter(r => !r.license);
+                    break;
+                case 'has-description':
+                    filteredRepos = allRepos.filter(r => r.description && r.description.trim());
+                    break;
+                case 'no-description':
+                    filteredRepos = allRepos.filter(r => !r.description || !r.description.trim());
+                    break;
+                case 'archived':
+                    filteredRepos = allRepos.filter(r => r.archived);
+                    break;
+                case 'empty':
+                    filteredRepos = allRepos.filter(r => r.size === 0);
+                    break;
+                default:
+                    if (type.startsWith('lang:')) {
+                        const lang = type.slice(5);
+                        filteredRepos = allRepos.filter(r => (r.language || 'Unknown') === lang);
+                    }
+            }
+
+            currentPage = 1;
+            document.getElementById('pageTitle').innerText = titleMap[type] || type;
+            document.getElementById('status').innerText = `Showing ${filteredRepos.length} repos`;
+            sortRepos();
+            renderPage();
+        }
+
+        function updateFilterCounts() {
+            const all = allRepos;
+            const setCount = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = val;
+            };
+
+            setCount('countPublicFilter',  all.filter(r => !r.private).length);
+            setCount('countPrivateFilter', all.filter(r => r.private).length);
+            setCount('countHasLicense',    all.filter(r => r.license).length);
+            setCount('countNoLicense',     all.filter(r => !r.license).length);
+            setCount('countHasDesc',       all.filter(r => r.description && r.description.trim()).length);
+            setCount('countNoDesc',        all.filter(r => !r.description || !r.description.trim()).length);
+            setCount('countArchived',      all.filter(r => r.archived).length);
+            setCount('countEmpty',         all.filter(r => r.size === 0).length);
+
+            // Language filters
+            const langs = {};
+            all.forEach(r => {
+                const lang = r.language || 'Unknown';
+                langs[lang] = (langs[lang] || 0) + 1;
+            });
+
+            const langContainer = document.getElementById('languageFilters');
+            if (langContainer) {
+                const sorted = Object.entries(langs).sort((a, b) => b[1] - a[1]);
+                langContainer.innerHTML = sorted.map(([lang, count]) =>
+                    `<div class="nav-item" onclick="applyAdvancedFilter('lang:${lang}')">
+                        <span>${lang}</span>
+                        <span class="nav-badge">${count}</span>
+                    </div>`
+                ).join('');
+            }
         }
 
         function sortRepos() {
@@ -2107,6 +2340,7 @@
                 document.getElementById('countSource').innerText  = allRepos.filter(r => !r.fork).length;
                 document.getElementById('countForkSub').innerText = forkCount;
 
+                updateFilterCounts();
                 applyFilter(currentFilter);
             } else {
                 document.getElementById('status').innerText = 'Error loading.';
@@ -2172,6 +2406,12 @@
 
             document.getElementById('settingsModal').style.display = 'none';
             showToast('Settings saved!', 'success');
+
+            // Auto-sync: reload dashboard and repos after saving token
+            if (t) {
+                loadDashboard();
+                loadRepos();
+            }
         }
 
         // --- Actions ---
@@ -2895,7 +3135,21 @@ npm start</pre>
         }
 
         // Filter functions
+        async function filterByVisibility(vis) {
+            if (allRepos.length === 0) await loadRepos();
+            if (vis === 'private') {
+                filteredRepos = allRepos.filter(r => r.private);
+            } else {
+                filteredRepos = allRepos.filter(r => !r.private);
+            }
+            currentPage = 1;
+            renderPage();
+            document.getElementById('pageTitle').innerText = vis === 'private' ? '🔐 Private Repos' : '🌍 Public Repos';
+            document.getElementById('status').innerText = `Showing ${filteredRepos.length} ${vis} repos`;
+        }
+
         async function filterStaleRepos() {
+            if (allRepos.length === 0) await loadRepos();
             if (!analysisData) {
                 const token = await window.api.getToken();
                 const result = await window.api.analyzeAllRepos({ token });
@@ -2914,6 +3168,7 @@ npm start</pre>
         }
 
         async function filterLargeRepos() {
+            if (allRepos.length === 0) await loadRepos();
             if (!analysisData) {
                 const token = await window.api.getToken();
                 const result = await window.api.analyzeAllRepos({ token });
@@ -2932,6 +3187,7 @@ npm start</pre>
         }
 
         async function filterUnchangedForks() {
+            if (allRepos.length === 0) await loadRepos();
             if (!analysisData) {
                 const token = await window.api.getToken();
                 const result = await window.api.analyzeAllRepos({ token });
@@ -3573,6 +3829,7 @@ npm start</pre>
                 addLog(`[${repoName}] ${message}`, status === 'error' ? 'error' : status === 'success' ? 'success' : 'info');
             });
 
+            const routerKey = await window.api.getRouterKey();
             const results = await window.api.createAndPushRepos({
                 token,
                 repos: reposToProcess.map(r => ({
@@ -3582,7 +3839,8 @@ npm start</pre>
                     description: r.description,
                     autoGitignore: r.autoGitignore !== false,
                     detectedType: r.detectedType,
-                    commitMessage: r.commitMessage || resolveCommitTemplate(r.repoName)
+                    commitMessage: r.commitMessage || resolveCommitTemplate(r.repoName),
+                    routerKey: routerKey || ''
                 }))
             });
 
@@ -3760,6 +4018,166 @@ npm start</pre>
 
             if (synced > 0) showToast(`${synced} fork(s) synced successfully.`, 'success');
             if (errors > 0) showToast(`${errors} fork(s) had issues. Check status column.`, 'warning');
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // LOCAL CHANGES VIEW
+        // ════════════════════════════════════════════════════════════════════
+        let localProjects = [];
+
+        async function loadLocalChangesView() {
+            document.getElementById('localChangesStatus').innerText = 'Scanning projects…';
+            document.getElementById('localChangesEmpty').style.display = 'none';
+            document.getElementById('localChangesTable').style.display = 'none';
+
+            // Get published projects from history
+            const history = await window.api.getOperationHistory();
+            const publishedSet = new Map();
+            (history || []).forEach(h => {
+                if (h.type === 'publish' && h.status === 'success' && h.folderPath) {
+                    publishedSet.set(h.folderPath, { name: h.repoName, folder: h.folderPath, repoUrl: h.repoUrl });
+                }
+            });
+
+            const projects = Array.from(publishedSet.values());
+
+            if (projects.length === 0) {
+                document.getElementById('localChangesStatus').innerText = '';
+                document.getElementById('localChangesEmpty').style.display = 'block';
+                document.getElementById('localChangesEmpty').innerText = 'No published projects found in history.';
+                document.getElementById('countLocalChanges').innerText = '0';
+                return;
+            }
+
+            // Check git status for each project
+            localProjects = [];
+            for (const p of projects) {
+                const result = await window.api.checkLocalGitStatus({ folderPath: p.folder });
+                localProjects.push({
+                    ...p,
+                    ...result,
+                    _pushStatus: null
+                });
+            }
+
+            const changedCount = localProjects.filter(p => p.success && p.needsPush).length;
+            document.getElementById('countLocalChanges').innerText = changedCount;
+            document.getElementById('localChangesStatus').innerText = `${localProjects.length} projects scanned, ${changedCount} need push`;
+
+            if (localProjects.length === 0) {
+                document.getElementById('localChangesEmpty').style.display = 'block';
+                document.getElementById('localChangesEmpty').innerText = 'No published projects found.';
+                return;
+            }
+
+            renderLocalChangesTable();
+            document.getElementById('btnPushAll').disabled = changedCount === 0;
+        }
+
+        function renderLocalChangesTable() {
+            const table = document.getElementById('localChangesTable');
+            const tbody = document.getElementById('localChangesTableBody');
+            table.style.display = 'table';
+            tbody.innerHTML = '';
+
+            localProjects.forEach((p, i) => {
+                const tr = document.createElement('tr');
+
+                if (!p.success) {
+                    tr.innerHTML = `
+                        <td><input type="checkbox" disabled></td>
+                        <td style="font-weight:600;">${p.name}</td>
+                        <td>—</td><td>—</td><td>—</td>
+                        <td><span class="status-chip chip-error">Not Found</span></td>
+                        <td>—</td>`;
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                const uncommittedColor = p.uncommitted > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)';
+                const unpushedLabel = p.unpushed === -1 ? 'No remote' : p.unpushed;
+                const unpushedColor = (p.unpushed > 0 || p.unpushed === -1) ? 'var(--danger)' : 'var(--text-secondary)';
+
+                let statusChip;
+                if (p._pushStatus === 'pushed') {
+                    statusChip = '<span class="status-chip chip-synced">Pushed</span>';
+                } else if (p._pushStatus === 'pushing') {
+                    statusChip = '<span class="status-chip chip-running">Pushing…</span>';
+                } else if (p._pushStatus === 'error') {
+                    statusChip = '<span class="status-chip chip-error">Failed</span>';
+                } else if (p.needsPush) {
+                    statusChip = '<span class="status-chip chip-conflict">Changes</span>';
+                } else {
+                    statusChip = '<span class="status-chip chip-synced">Clean</span>';
+                }
+
+                const pushBtn = p.needsPush && p._pushStatus !== 'pushed'
+                    ? `<button class="btn-dark" style="padding:4px 10px; font-size:11px;" onclick="pushSingleProject(${i})">🚀 Push</button>`
+                    : '—';
+
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="local-check" data-idx="${i}" ${p.needsPush ? '' : 'disabled'}></td>
+                    <td style="font-weight:600;">${p.name}</td>
+                    <td style="color: var(--text-secondary);">${p.branch}</td>
+                    <td style="color: ${uncommittedColor}; font-weight:600;">${p.uncommitted}</td>
+                    <td style="color: ${unpushedColor}; font-weight:600;">${unpushedLabel}</td>
+                    <td id="localStatus${i}">${statusChip}</td>
+                    <td id="localAction${i}">${pushBtn}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleLocalSelectAll() {
+            const checked = document.getElementById('localSelectAll').checked;
+            document.querySelectorAll('.local-check:not(:disabled)').forEach(cb => cb.checked = checked);
+        }
+
+        async function pushSingleProject(idx) {
+            const p = localProjects[idx];
+            const token = await window.api.getToken();
+            if (!token) return showToast('No token found.', 'warning');
+
+            p._pushStatus = 'pushing';
+            renderLocalChangesTable();
+
+            const result = await window.api.quickPush({
+                folderPath: p.folder,
+                token,
+                commitMessage: 'Update changes'
+            });
+
+            if (result.success) {
+                p._pushStatus = 'pushed';
+                p.needsPush = false;
+                p.uncommitted = 0;
+                p.unpushed = 0;
+                showToast(`${p.name} pushed!`, 'success');
+            } else {
+                p._pushStatus = 'error';
+                showToast(`${p.name}: ${result.error}`, 'error');
+            }
+
+            renderLocalChangesTable();
+            const changedCount = localProjects.filter(x => x.success && x.needsPush).length;
+            document.getElementById('countLocalChanges').innerText = changedCount;
+        }
+
+        async function pushAllChanged() {
+            const token = await window.api.getToken();
+            if (!token) return showToast('No token found.', 'warning');
+
+            const checks = document.querySelectorAll('.local-check:checked');
+            const selected = Array.from(checks).map(cb => parseInt(cb.dataset.idx));
+            if (selected.length === 0) return showToast('Select projects first.', 'warning');
+
+            document.getElementById('btnPushAll').disabled = true;
+
+            for (const idx of selected) {
+                await pushSingleProject(idx);
+            }
+
+            document.getElementById('btnPushAll').disabled = false;
+            showToast('All selected projects pushed!', 'success');
         }
 
         // ════════════════════════════════════════════════════════════════════

@@ -78,6 +78,10 @@ contextBridge.exposeInMainWorld('api', {
     detectProjectType: (folderPath) => ipcRenderer.invoke('detectProjectType', folderPath),
     createGitignore: (data) => ipcRenderer.invoke('createGitignore', data),
 
+    // Local Git Status & Quick Push
+    checkLocalGitStatus: (data) => ipcRenderer.invoke('checkLocalGitStatus', data),
+    quickPush: (data) => ipcRenderer.invoke('quickPush', data),
+
     // App Config (commit templates, defaults)
     getAppConfig: () => ipcRenderer.invoke('getAppConfig'),
     saveAppConfig: (update) => ipcRenderer.invoke('saveAppConfig', update)

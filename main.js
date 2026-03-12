@@ -1,18 +1,46 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
 const { execSync, execFileSync } = require('child_process');
 
 let mainWindow;
+let tray = null;
 let currentUser = null; // To cache user info
 
+// Use userData for writable config, __dirname for dev
+function getEnvPath() {
+    if (app.isPackaged) {
+        return path.join(app.getPath('userData'), '.env');
+    }
+    return path.join(__dirname, '.env');
+}
+
+// Prevent app crash on unhandled errors
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+});
+
+function getIconPath() {
+    // In production (asar), use resourcesPath; in dev, use __dirname
+    const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
+    const devPath = path.join(__dirname, 'assets', iconName);
+    if (fs.existsSync(devPath)) return devPath;
+    return path.join(process.resourcesPath, 'assets', iconName);
+}
+
 function createWindow() {
+    const iconPath = getIconPath();
+
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 750,
         frame: false, // Custom Title Bar
         titleBarStyle: 'hidden',
+        icon: iconPath,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -21,10 +49,54 @@ function createWindow() {
     });
 
     mainWindow.loadFile('index.html');
+
+    // Minimize to tray instead of closing
+    mainWindow.on('close', (e) => {
+        if (!app.isQuitting) {
+            e.preventDefault();
+            mainWindow.hide();
+        }
+    });
+}
+
+function createTray() {
+    const iconPath = getIconPath();
+    tray = new Tray(iconPath);
+
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Open GitHub Repo Cleaner',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Quit',
+            click: () => {
+                app.isQuitting = true;
+                app.quit();
+            }
+        }
+    ]);
+
+    tray.setToolTip('GitHub Repo Cleaner AI');
+    tray.setContextMenu(contextMenu);
+
+    tray.on('double-click', () => {
+        if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
 }
 
 app.whenReady().then(() => {
     createWindow();
+    createTray();
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -34,9 +106,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+    // Don't quit - keep running in tray
 });
 
 // Helper for HTTP requests
@@ -146,7 +216,7 @@ ipcMain.handle('deleteRepos', async (event, { token, repos }) => {
 // 4. Token Management handlers
 ipcMain.handle('getToken', async () => {
     try {
-        const envPath = path.join(__dirname, '.env');
+        const envPath = getEnvPath();
         if (fs.existsSync(envPath)) {
             const content = fs.readFileSync(envPath, 'utf-8');
             const match = content.match(/GITHUB_TOKEN=(.+)/);
@@ -163,7 +233,7 @@ ipcMain.handle('getToken', async () => {
 
 ipcMain.handle('saveToken', async (event, token) => {
     try {
-        const envPath = path.join(__dirname, '.env');
+        const envPath = getEnvPath();
         let content = '';
         if (fs.existsSync(envPath)) {
             content = fs.readFileSync(envPath, 'utf-8');
@@ -185,7 +255,7 @@ ipcMain.handle('saveToken', async (event, token) => {
 // 5. Router Key Management
 ipcMain.handle('getRouterKey', async () => {
     try {
-        const envPath = path.join(__dirname, '.env');
+        const envPath = getEnvPath();
         if (fs.existsSync(envPath)) {
             const content = fs.readFileSync(envPath, 'utf-8');
             const match = content.match(/ROUTER_KEY=(.+)/);
@@ -199,7 +269,7 @@ ipcMain.handle('getRouterKey', async () => {
 
 ipcMain.handle('saveRouterKey', async (event, key) => {
     try {
-        const envPath = path.join(__dirname, '.env');
+        const envPath = getEnvPath();
         let content = '';
         if (fs.existsSync(envPath)) {
             content = fs.readFileSync(envPath, 'utf-8');
@@ -1492,7 +1562,7 @@ function maxShaMatch(a, b) {
 }
 
 // ─── Operation History ────────────────────────────────────────────────────────
-const historyFilePath = path.join(__dirname, 'operation-history.json');
+const historyFilePath = app.isPackaged ? path.join(app.getPath('userData'), 'operation-history.json') : path.join(__dirname, 'operation-history.json');
 
 function loadHistory() {
     try {
@@ -1667,7 +1737,14 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                     result.steps.push({ step: 'Empty initial commit created', status: 'info' });
                 }
             } else {
-                result.steps.push({ step: 'Using existing commits', status: 'info' });
+                // Even with existing commits, commit any new staged changes
+                const statusOut2 = execSync('git status --porcelain', { cwd: repo.folderPath }).toString().trim();
+                if (statusOut2.length > 0) {
+                    execFileSync('git', ['commit', '-m', rawMsg], { cwd: repo.folderPath, stdio: 'pipe' });
+                    result.steps.push({ step: `New changes committed: "${rawMsg}"`, status: 'success' });
+                } else {
+                    result.steps.push({ step: 'Using existing commits (no new changes)', status: 'info' });
+                }
             }
 
             // 7. Add remote
@@ -1696,11 +1773,62 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             } catch (e) {}
 
             const authUrl = cloneUrl.replace('https://', `https://${token}@`);
-            execSync(`git remote set-url origin ${authUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
-            execSync(`git push -u origin ${branchName}`, { cwd: repo.folderPath, stdio: 'pipe' });
-            execSync(`git remote set-url origin ${cloneUrl}`, { cwd: repo.folderPath, stdio: 'pipe' });
+            execFileSync('git', ['remote', 'set-url', 'origin', authUrl], { cwd: repo.folderPath, stdio: 'pipe' });
+            try {
+                execSync(`git push -u origin ${branchName}`, { cwd: repo.folderPath, stdio: 'pipe', timeout: 120000 });
+            } catch (pushErr) {
+                // Restore clean URL before re-throwing
+                execFileSync('git', ['remote', 'set-url', 'origin', cloneUrl], { cwd: repo.folderPath, stdio: 'pipe' });
+                throw new Error(`Push failed: ${pushErr.stderr ? pushErr.stderr.toString() : pushErr.message}`);
+            }
+            execFileSync('git', ['remote', 'set-url', 'origin', cloneUrl], { cwd: repo.folderPath, stdio: 'pipe' });
 
             result.steps.push({ step: 'Pushed to GitHub', status: 'success' });
+
+            // 9. Auto-generate AI README if routerKey is available
+            if (repo.autoReadme !== false) {
+                try {
+                    const routerKey = repo.routerKey || '';
+                    if (routerKey) {
+                        event.sender.send('publish-progress', {
+                            repoName: repo.repoName,
+                            message: 'Generating AI README…',
+                            status: 'processing'
+                        });
+
+                        const fullName = githubRepo.full_name;
+                        const [owner, repoN] = fullName.split('/');
+
+                        // Check if README already exists
+                        let hasReadme = false;
+                        try {
+                            await githubRequest(`/repos/${owner}/${repoN}/contents/README.md`, 'GET', token);
+                            hasReadme = true;
+                        } catch (e) {}
+
+                        if (!hasReadme) {
+                            const files = await getRepoFiles(token, owner, repoN);
+                            if (files.length > 0) {
+                                const readme = await openRouterReadmeRequest(routerKey, repo.repoName, files);
+                                if (readme) {
+                                    await githubRequest(`/repos/${owner}/${repoN}/contents/README.md`, 'PUT', token, {
+                                        message: 'Create README.md via AI',
+                                        content: Buffer.from(readme).toString('base64')
+                                    });
+                                    result.steps.push({ step: 'AI README created', status: 'success' });
+                                } else {
+                                    result.steps.push({ step: 'AI README: generation failed, skipped', status: 'info' });
+                                }
+                            }
+                        } else {
+                            result.steps.push({ step: 'README already exists, skipped', status: 'info' });
+                        }
+                    }
+                } catch (readmeErr) {
+                    result.steps.push({ step: `AI README failed: ${readmeErr.message}`, status: 'info' });
+                }
+            }
+
             result.status = 'success';
             result.repoUrl = githubRepo.html_url;
 
@@ -1842,8 +1970,86 @@ ipcMain.handle('syncForkBulk', async (event, { token, repos }) => {
     return results;
 });
 
+// ─── Local Git Status Check ───────────────────────────────────────────────────
+ipcMain.handle('checkLocalGitStatus', async (event, { folderPath }) => {
+    try {
+        if (!fs.existsSync(path.join(folderPath, '.git'))) {
+            return { success: false, error: 'Not a git repository' };
+        }
+
+        // Check for uncommitted changes
+        const statusOut = execSync('git status --porcelain', { cwd: folderPath, timeout: 10000 }).toString().trim();
+        const uncommitted = statusOut.length > 0 ? statusOut.split('\n').length : 0;
+
+        // Check for unpushed commits
+        let unpushed = 0;
+        try {
+            const logOut = execSync('git log --oneline @{u}..HEAD', { cwd: folderPath, timeout: 10000 }).toString().trim();
+            unpushed = logOut.length > 0 ? logOut.split('\n').length : 0;
+        } catch (e) {
+            // No upstream set
+            try {
+                const logAll = execSync('git log --oneline', { cwd: folderPath, timeout: 10000 }).toString().trim();
+                if (logAll.length > 0) unpushed = -1; // -1 means no remote tracking
+            } catch (e2) {}
+        }
+
+        // Get current branch
+        let branch = 'main';
+        try {
+            branch = execSync('git branch --show-current', { cwd: folderPath, timeout: 5000 }).toString().trim() || 'main';
+        } catch (e) {}
+
+        return {
+            success: true,
+            uncommitted,
+            unpushed,
+            branch,
+            needsPush: uncommitted > 0 || unpushed > 0
+        };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
+ipcMain.handle('quickPush', async (event, { folderPath, token, commitMessage }) => {
+    try {
+        const cwd = folderPath;
+
+        // Stage & commit if there are changes
+        const statusOut = execSync('git status --porcelain', { cwd, timeout: 10000 }).toString().trim();
+        if (statusOut.length > 0) {
+            execSync('git add .', { cwd, stdio: 'pipe' });
+            execFileSync('git', ['commit', '-m', commitMessage || 'Update changes'], { cwd, stdio: 'pipe' });
+        }
+
+        // Get remote URL and push
+        let remoteUrl = '';
+        try {
+            remoteUrl = execSync('git remote get-url origin', { cwd, timeout: 5000 }).toString().trim();
+        } catch (e) {
+            return { success: false, error: 'No remote origin set' };
+        }
+
+        const branch = execSync('git branch --show-current', { cwd, timeout: 5000 }).toString().trim() || 'main';
+
+        // Auth push
+        const authUrl = remoteUrl.replace('https://', `https://${token}@`);
+        execFileSync('git', ['remote', 'set-url', 'origin', authUrl], { cwd, stdio: 'pipe' });
+        try {
+            execSync(`git push -u origin ${branch}`, { cwd, stdio: 'pipe', timeout: 120000 });
+        } finally {
+            execFileSync('git', ['remote', 'set-url', 'origin', remoteUrl], { cwd, stdio: 'pipe' });
+        }
+
+        return { success: true, message: 'Pushed successfully!' };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
 // ─── App Config (commit templates, defaults) ──────────────────────────────────
-const configFilePath = path.join(__dirname, 'app-config.json');
+const configFilePath = app.isPackaged ? path.join(app.getPath('userData'), 'app-config.json') : path.join(__dirname, 'app-config.json');
 
 function loadConfig() {
     try {
