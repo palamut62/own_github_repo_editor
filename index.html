@@ -1252,6 +1252,27 @@
             </div>
         </div>
 
+            <!-- Discovery -->
+            <div class="nav-group">
+                <div class="nav-category collapsed" id="catDiscovery">
+                    <div class="nav-category-header" onclick="toggleCategory('catDiscovery')">
+                        <div class="nav-title">Discovery</div>
+                        <span class="nav-category-arrow">▼</span>
+                    </div>
+                    <div class="nav-category-body">
+                        <div class="nav-item" id="navExploreSearch" onclick="showView('exploreSearch')">
+                            <span>🔍 Search</span>
+                        </div>
+                        <div class="nav-item" id="navExploreTrending" onclick="showView('exploreTrending')">
+                            <span>🔥 Trending</span>
+                        </div>
+                        <div class="nav-item" id="navExploreTopics" onclick="showView('exploreTopics')">
+                            <span>🏷️ Topics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         <div class="sidebar-footer">
             <div class="nav-item" onclick="toggleTheme()">
                 <span id="themeToggleLabel">☀️ Light Mode</span>
@@ -1277,7 +1298,7 @@
                         </svg>
                     </div>
                 </div>
-                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.2.0</div>
+                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.3.0</div>
             </div>
         </div>
     </div>
@@ -1543,9 +1564,117 @@
             </div>
         </div>
 
+        <!-- ═══════ EXPLORE: SEARCH ═══════ -->
+        <div class="view-section" id="view-exploreSearch" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="exploreSearchInput" placeholder="Search repositories..."
+                    style="flex:1; min-width:200px; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:14px;"
+                    onkeydown="if(event.key==='Enter') searchExploreRepos()">
+                <select id="exploreSearchLang" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                    <option value="">All Languages</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="TypeScript">TypeScript</option>
+                    <option value="Python">Python</option>
+                    <option value="Java">Java</option>
+                    <option value="Go">Go</option>
+                    <option value="Rust">Rust</option>
+                    <option value="C++">C++</option>
+                    <option value="C#">C#</option>
+                    <option value="PHP">PHP</option>
+                    <option value="Ruby">Ruby</option>
+                    <option value="Swift">Swift</option>
+                    <option value="Kotlin">Kotlin</option>
+                    <option value="Dart">Dart</option>
+                    <option value="Shell">Shell</option>
+                    <option value="HTML">HTML</option>
+                    <option value="CSS">CSS</option>
+                </select>
+                <select id="exploreSearchSort" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                    <option value="stars">Stars</option>
+                    <option value="forks">Forks</option>
+                    <option value="updated">Recently Updated</option>
+                </select>
+                <input type="number" id="exploreSearchMinStars" placeholder="Min stars" min="0"
+                    style="width:100px; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                <button onclick="searchExploreRepos()" class="btn-primary" style="padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer; border:none;">
+                    🔍 Search
+                </button>
+            </div>
+            <div id="exploreSearchResults" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto;"></div>
+            <div id="exploreSearchLoadMore" style="display:none; text-align:center;">
+                <button onclick="searchExploreRepos(true)" class="btn-primary" style="padding:8px 24px; border-radius:6px; font-size:13px; cursor:pointer; border:none; opacity:0.8;">
+                    Load More
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════ EXPLORE: TRENDING ═══════ -->
+        <div class="view-section" id="view-exploreTrending" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <select id="exploreTrendingTime" onchange="loadTrendingRepos()" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                    <option value="weekly">This Week</option>
+                    <option value="monthly">This Month</option>
+                    <option value="alltime">All Time</option>
+                </select>
+                <select id="exploreTrendingLang" onchange="loadTrendingRepos()" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                    <option value="">All Languages</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="TypeScript">TypeScript</option>
+                    <option value="Python">Python</option>
+                    <option value="Java">Java</option>
+                    <option value="Go">Go</option>
+                    <option value="Rust">Rust</option>
+                    <option value="C++">C++</option>
+                    <option value="C#">C#</option>
+                    <option value="PHP">PHP</option>
+                    <option value="Ruby">Ruby</option>
+                    <option value="Swift">Swift</option>
+                    <option value="Kotlin">Kotlin</option>
+                </select>
+                <select id="exploreTrendingSort" onchange="loadTrendingRepos()" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
+                    <option value="stars">Most Stars</option>
+                    <option value="forks">Most Forks</option>
+                </select>
+            </div>
+            <div id="exploreTrendingResults" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto;"></div>
+            <div id="exploreTrendingLoadMore" style="display:none; text-align:center;">
+                <button onclick="loadTrendingRepos(true)" class="btn-primary" style="padding:8px 24px; border-radius:6px; font-size:13px; cursor:pointer; border:none; opacity:0.8;">
+                    Load More
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════ EXPLORE: TOPICS ═══════ -->
+        <div class="view-section" id="view-exploreTopics" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+            <div id="exploreTopicsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px;"></div>
+            <div id="exploreTopicRepos" style="display:none; flex-direction:column; gap:8px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                    <button onclick="backToTopics()" style="padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:12px; cursor:pointer;">← Back</button>
+                    <span id="exploreTopicTitle" style="font-size:15px; font-weight:600; color:var(--text-primary);"></span>
+                </div>
+                <div id="exploreTopicReposList" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto;"></div>
+                <div id="exploreTopicLoadMore" style="display:none; text-align:center;">
+                    <button onclick="loadTopicRepos(null, true)" class="btn-primary" style="padding:8px 24px; border-radius:6px; font-size:13px; cursor:pointer; border:none; opacity:0.8;">
+                        Load More
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- MODALS -->
+
+    <!-- ═══════ EXPLORE: REPO DETAIL MODAL ═══════ -->
+    <div id="exploreDetailModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box" style="position:relative; padding-top:36px; max-width:700px; width:90%; max-height:85vh; overflow-y:auto;">
+            <div class="modal-close-btn" onclick="closeExploreDetailModal()" title="Close">✕</div>
+            <h3 id="exploreDetailTitle" style="margin-top:0; margin-bottom:16px; color:var(--accent-blue); font-size:18px;"></h3>
+            <div id="exploreDetailBody" style="display:flex; flex-direction:column; gap:16px;">
+                <div style="text-align:center; padding:30px; color:var(--text-secondary);">Loading...</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
@@ -2206,7 +2335,7 @@
             document.getElementById('repoFiltersGroup').style.display = 'none';
 
             // Update top-level nav active state
-            ['navDashboard','navAddProject','navRepos','navForkSync','navLocalChanges','navHistory'].forEach(id => {
+            ['navDashboard','navAddProject','navRepos','navForkSync','navLocalChanges','navHistory','navExploreSearch','navExploreTrending','navExploreTopics'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.remove('active');
             });
@@ -2217,7 +2346,10 @@
                 repos:        '📁 Repositories',
                 forkSync:     '🔀 Fork Sync',
                 localChanges: '📡 Local Changes',
-                history:      '📋 History'
+                history:      '📋 History',
+                exploreSearch:    '🔍 Search Repositories',
+                exploreTrending:  '🔥 Trending Repositories',
+                exploreTopics:    '🏷️ Explore Topics'
             };
             document.getElementById('pageTitle').innerText = titles[viewName] || viewName;
 
@@ -2249,6 +2381,20 @@
                     document.getElementById('view-history').style.display = 'flex';
                     document.getElementById('navHistory').classList.add('active');
                     loadHistoryView();
+                    break;
+                case 'exploreSearch':
+                    document.getElementById('view-exploreSearch').style.display = 'flex';
+                    document.getElementById('navExploreSearch').classList.add('active');
+                    break;
+                case 'exploreTrending':
+                    document.getElementById('view-exploreTrending').style.display = 'flex';
+                    document.getElementById('navExploreTrending').classList.add('active');
+                    loadTrendingRepos();
+                    break;
+                case 'exploreTopics':
+                    document.getElementById('view-exploreTopics').style.display = 'flex';
+                    document.getElementById('navExploreTopics').classList.add('active');
+                    loadTopics();
                     break;
             }
         }
@@ -4581,6 +4727,508 @@ npm start</pre>
             loadHistoryView();
             showToast('History cleared.', 'success');
         }
+
+        // ═══════ EXPLORE: SEARCH ═══════
+        let exploreSearchPage = 1;
+        let exploreSearchTotalCount = 0;
+
+        async function searchExploreRepos(loadMore = false) {
+            const token = await window.api.getToken();
+            if (!token) { showToast('Please set your GitHub token first', 'error'); return; }
+
+            const query = document.getElementById('exploreSearchInput').value.trim();
+            const lang = document.getElementById('exploreSearchLang').value;
+            const sort = document.getElementById('exploreSearchSort').value;
+            const minStars = document.getElementById('exploreSearchMinStars').value;
+
+            let q = query || 'stars:>100';
+            if (minStars) q += ` stars:>=${minStars}`;
+
+            if (!loadMore) {
+                exploreSearchPage = 1;
+                document.getElementById('exploreSearchResults').innerHTML = '';
+            } else {
+                exploreSearchPage++;
+            }
+
+            const resultsDiv = document.getElementById('exploreSearchResults');
+            if (!loadMore) {
+                const loading = document.createElement('div');
+                loading.style.cssText = 'text-align:center; padding:40px; color:var(--text-secondary);';
+                loading.textContent = 'Searching...';
+                resultsDiv.appendChild(loading);
+            }
+
+            const result = await window.api.searchRepos({ token, query: q, language: lang, sort, order: 'desc', page: exploreSearchPage });
+
+            if (!loadMore) resultsDiv.innerHTML = '';
+
+            if (result.error) {
+                showToast('Search failed: ' + result.error, 'error');
+                return;
+            }
+
+            exploreSearchTotalCount = result.total_count || 0;
+            const items = result.items || [];
+
+            if (items.length === 0 && !loadMore) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'text-align:center; padding:40px; color:var(--text-secondary);';
+                empty.textContent = 'No repositories found.';
+                resultsDiv.appendChild(empty);
+            }
+
+            items.forEach(repo => {
+                resultsDiv.appendChild(createExploreRepoCard(repo));
+            });
+
+            const shown = resultsDiv.children.length;
+            document.getElementById('exploreSearchLoadMore').style.display =
+                shown < exploreSearchTotalCount ? 'block' : 'none';
+        }
+
+        function createExploreRepoCard(repo) {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:8px;';
+
+            const topRow = document.createElement('div');
+            topRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px;';
+
+            const nameLink = document.createElement('span');
+            nameLink.style.cssText = 'font-size:14px; font-weight:600; color:var(--accent-blue); cursor:pointer;';
+            nameLink.textContent = repo.full_name;
+            nameLink.addEventListener('click', () => openExploreDetailModal(repo.full_name));
+
+            const statsDiv = document.createElement('div');
+            statsDiv.style.cssText = 'display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text-secondary); flex-shrink:0;';
+            const starSpan = document.createElement('span');
+            starSpan.textContent = '\u2B50 ' + (repo.stargazers_count || 0).toLocaleString();
+            const forkSpan = document.createElement('span');
+            forkSpan.textContent = '\uD83C\uDF74 ' + (repo.forks_count || 0).toLocaleString();
+            statsDiv.appendChild(starSpan);
+            statsDiv.appendChild(forkSpan);
+
+            topRow.appendChild(nameLink);
+            topRow.appendChild(statsDiv);
+
+            const desc = document.createElement('div');
+            desc.style.cssText = 'font-size:13px; color:var(--text-secondary); line-height:1.4;';
+            desc.textContent = repo.description || 'No description';
+
+            const bottomRow = document.createElement('div');
+            bottomRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;';
+
+            const metaDiv = document.createElement('div');
+            metaDiv.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-secondary);';
+            if (repo.language) {
+                const langSpan = document.createElement('span');
+                langSpan.style.cssText = 'background:var(--bg-input); padding:2px 8px; border-radius:10px;';
+                langSpan.textContent = repo.language;
+                metaDiv.appendChild(langSpan);
+            }
+            const updated = document.createElement('span');
+            updated.textContent = 'Updated ' + new Date(repo.updated_at).toLocaleDateString();
+            metaDiv.appendChild(updated);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.cssText = 'display:flex; gap:6px;';
+
+            const starBtn = document.createElement('button');
+            starBtn.style.cssText = 'padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:12px; cursor:pointer;';
+            starBtn.textContent = '\u2B50 Star';
+            starBtn.addEventListener('click', async () => {
+                const t = await window.api.getToken();
+                const res = await window.api.starRepo({ token: t, fullName: repo.full_name });
+                if (res.success) { showToast('Starred ' + repo.full_name, 'success'); starBtn.textContent = '\u2B50 Starred'; }
+                else showToast('Failed to star', 'error');
+            });
+
+            const forkBtn = document.createElement('button');
+            forkBtn.style.cssText = 'padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:12px; cursor:pointer;';
+            forkBtn.textContent = '\uD83C\uDF74 Fork';
+            forkBtn.addEventListener('click', async () => {
+                const t = await window.api.getToken();
+                const res = await window.api.forkRepo({ token: t, fullName: repo.full_name });
+                if (res && !res.error) { showToast('Forked ' + repo.full_name, 'success'); }
+                else showToast('Failed to fork', 'error');
+            });
+
+            const cloneBtn = document.createElement('button');
+            cloneBtn.style.cssText = 'padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:12px; cursor:pointer;';
+            cloneBtn.textContent = '\uD83D\uDCCB Clone';
+            cloneBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(repo.clone_url);
+                showToast('Clone URL copied!', 'success');
+            });
+
+            actionsDiv.appendChild(starBtn);
+            actionsDiv.appendChild(forkBtn);
+            actionsDiv.appendChild(cloneBtn);
+
+            bottomRow.appendChild(metaDiv);
+            bottomRow.appendChild(actionsDiv);
+
+            card.appendChild(topRow);
+            card.appendChild(desc);
+            card.appendChild(bottomRow);
+
+            return card;
+        }
+
+        // ═══════ EXPLORE: TRENDING ═══════
+        let trendingPage = 1;
+        let trendingTotalCount = 0;
+
+        async function loadTrendingRepos(loadMore = false) {
+            const token = await window.api.getToken();
+            if (!token) { showToast('Please set your GitHub token first', 'error'); return; }
+
+            const timeRange = document.getElementById('exploreTrendingTime').value;
+            const lang = document.getElementById('exploreTrendingLang').value;
+            const sort = document.getElementById('exploreTrendingSort').value;
+
+            let dateFilter = '';
+            const now = new Date();
+            if (timeRange === 'weekly') {
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                dateFilter = ` created:>${weekAgo.toISOString().split('T')[0]}`;
+            } else if (timeRange === 'monthly') {
+                const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                dateFilter = ` created:>${monthAgo.toISOString().split('T')[0]}`;
+            }
+
+            const q = 'stars:>50' + dateFilter;
+
+            if (!loadMore) {
+                trendingPage = 1;
+                const div = document.getElementById('exploreTrendingResults');
+                div.innerHTML = '';
+                const loading = document.createElement('div');
+                loading.style.cssText = 'text-align:center; padding:40px; color:var(--text-secondary);';
+                loading.textContent = 'Loading trending repos...';
+                div.appendChild(loading);
+            } else {
+                trendingPage++;
+            }
+
+            const result = await window.api.searchRepos({ token, query: q, language: lang, sort, order: 'desc', page: trendingPage });
+
+            const div = document.getElementById('exploreTrendingResults');
+            if (!loadMore) div.innerHTML = '';
+
+            if (result.error) { showToast('Failed to load trending', 'error'); return; }
+
+            trendingTotalCount = result.total_count || 0;
+            const items = result.items || [];
+
+            items.forEach(repo => {
+                div.appendChild(createExploreRepoCard(repo));
+            });
+
+            document.getElementById('exploreTrendingLoadMore').style.display =
+                div.children.length < trendingTotalCount ? 'block' : 'none';
+        }
+
+        // ═══════ EXPLORE: TOPICS ═══════
+        const popularTopics = [
+            'machine-learning', 'react', 'python', 'javascript', 'typescript',
+            'nodejs', 'docker', 'kubernetes', 'rust', 'go', 'vue', 'angular',
+            'nextjs', 'tailwindcss', 'cli', 'api', 'database', 'devops',
+            'security', 'blockchain', 'flutter', 'android', 'ios', 'swift',
+            'artificial-intelligence', 'deep-learning', 'data-science', 'web',
+            'linux', 'game-development', 'graphql', 'testing'
+        ];
+
+        let currentTopic = '';
+        let topicPage = 1;
+        let topicTotalCount = 0;
+
+        function loadTopics() {
+            const grid = document.getElementById('exploreTopicsGrid');
+            grid.innerHTML = '';
+            document.getElementById('exploreTopicsGrid').style.display = 'grid';
+            document.getElementById('exploreTopicRepos').style.display = 'none';
+
+            popularTopics.forEach(topic => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px; text-align:center; cursor:pointer; transition:background 0.15s;';
+                card.addEventListener('mouseenter', () => card.style.background = 'var(--bg-input)');
+                card.addEventListener('mouseleave', () => card.style.background = 'var(--bg-card)');
+
+                const label = document.createElement('div');
+                label.style.cssText = 'font-size:13px; font-weight:600; color:var(--accent-blue);';
+                label.textContent = '#' + topic;
+                card.appendChild(label);
+
+                card.addEventListener('click', () => loadTopicRepos(topic));
+                grid.appendChild(card);
+            });
+        }
+
+        async function loadTopicRepos(topic, loadMore = false) {
+            const token = await window.api.getToken();
+            if (!token) { showToast('Please set your GitHub token first', 'error'); return; }
+
+            if (topic) {
+                currentTopic = topic;
+                topicPage = 1;
+            } else if (loadMore) {
+                topicPage++;
+            }
+
+            document.getElementById('exploreTopicsGrid').style.display = 'none';
+            document.getElementById('exploreTopicRepos').style.display = 'flex';
+            document.getElementById('exploreTopicTitle').textContent = '#' + currentTopic;
+
+            const listDiv = document.getElementById('exploreTopicReposList');
+            if (!loadMore) {
+                listDiv.innerHTML = '';
+                const loading = document.createElement('div');
+                loading.style.cssText = 'text-align:center; padding:40px; color:var(--text-secondary);';
+                loading.textContent = 'Loading...';
+                listDiv.appendChild(loading);
+            }
+
+            const result = await window.api.searchRepos({
+                token, query: 'topic:' + currentTopic + ' stars:>10', sort: 'stars', order: 'desc', page: topicPage
+            });
+
+            if (!loadMore) listDiv.innerHTML = '';
+
+            if (result.error) { showToast('Failed to load topic repos', 'error'); return; }
+
+            topicTotalCount = result.total_count || 0;
+            (result.items || []).forEach(repo => {
+                listDiv.appendChild(createExploreRepoCard(repo));
+            });
+
+            document.getElementById('exploreTopicLoadMore').style.display =
+                listDiv.children.length < topicTotalCount ? 'block' : 'none';
+        }
+
+        function backToTopics() {
+            document.getElementById('exploreTopicsGrid').style.display = 'grid';
+            document.getElementById('exploreTopicRepos').style.display = 'none';
+        }
+
+        // ═══════ EXPLORE: REPO DETAIL MODAL ═══════
+        async function openExploreDetailModal(fullName) {
+            const modal = document.getElementById('exploreDetailModal');
+            modal.style.display = 'flex';
+            document.getElementById('exploreDetailTitle').textContent = fullName;
+            const body = document.getElementById('exploreDetailBody');
+            body.innerHTML = '';
+
+            const loading = document.createElement('div');
+            loading.style.cssText = 'text-align:center; padding:30px; color:var(--text-secondary);';
+            loading.textContent = 'Loading repository details...';
+            body.appendChild(loading);
+
+            const token = await window.api.getToken();
+            const data = await window.api.getExploreRepoDetail({ token, fullName });
+            body.innerHTML = '';
+
+            if (data.error) {
+                const err = document.createElement('div');
+                err.style.cssText = 'color:var(--danger); text-align:center; padding:20px;';
+                err.textContent = 'Failed to load: ' + data.error;
+                body.appendChild(err);
+                return;
+            }
+
+            const repo = data.repo;
+            if (!repo) return;
+
+            // Stats row
+            const stats = document.createElement('div');
+            stats.style.cssText = 'display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--text-secondary);';
+            ['\u2B50 ' + (repo.stargazers_count || 0).toLocaleString() + ' stars',
+             '\uD83C\uDF74 ' + (repo.forks_count || 0).toLocaleString() + ' forks',
+             '\uD83D\uDC41\uFE0F ' + (repo.watchers_count || 0).toLocaleString() + ' watchers',
+             '\uD83D\uDCCF ' + (repo.size ? (repo.size / 1024).toFixed(1) + ' MB' : 'N/A')
+            ].forEach(text => {
+                const s = document.createElement('span');
+                s.textContent = text;
+                stats.appendChild(s);
+            });
+            body.appendChild(stats);
+
+            // Description
+            if (repo.description) {
+                const descEl = document.createElement('div');
+                descEl.style.cssText = 'font-size:13px; color:var(--text-secondary); line-height:1.5;';
+                descEl.textContent = repo.description;
+                body.appendChild(descEl);
+            }
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap;';
+
+            const starBtn = document.createElement('button');
+            starBtn.style.cssText = 'padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px; cursor:pointer;';
+            starBtn.textContent = data.starred ? '\u2B50 Unstar' : '\u2B50 Star';
+            starBtn.addEventListener('click', async () => {
+                const t = await window.api.getToken();
+                if (data.starred) {
+                    await window.api.unstarRepo({ token: t, fullName });
+                    starBtn.textContent = '\u2B50 Star';
+                    data.starred = false;
+                    showToast('Unstarred ' + fullName, 'success');
+                } else {
+                    await window.api.starRepo({ token: t, fullName });
+                    starBtn.textContent = '\u2B50 Unstar';
+                    data.starred = true;
+                    showToast('Starred ' + fullName, 'success');
+                }
+            });
+            actions.appendChild(starBtn);
+
+            const forkBtn = document.createElement('button');
+            forkBtn.style.cssText = 'padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px; cursor:pointer;';
+            forkBtn.textContent = '\uD83C\uDF74 Fork';
+            forkBtn.addEventListener('click', async () => {
+                const t = await window.api.getToken();
+                const res = await window.api.forkRepo({ token: t, fullName });
+                if (res && !res.error) showToast('Forked successfully!', 'success');
+                else showToast('Fork failed', 'error');
+            });
+            actions.appendChild(forkBtn);
+
+            const cloneHttps = document.createElement('button');
+            cloneHttps.style.cssText = 'padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px; cursor:pointer;';
+            cloneHttps.textContent = '\uD83D\uDCCB HTTPS';
+            cloneHttps.addEventListener('click', () => {
+                navigator.clipboard.writeText(repo.clone_url);
+                showToast('HTTPS clone URL copied!', 'success');
+            });
+            actions.appendChild(cloneHttps);
+
+            const cloneSsh = document.createElement('button');
+            cloneSsh.style.cssText = 'padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px; cursor:pointer;';
+            cloneSsh.textContent = '\uD83D\uDCCB SSH';
+            cloneSsh.addEventListener('click', () => {
+                navigator.clipboard.writeText(repo.ssh_url);
+                showToast('SSH clone URL copied!', 'success');
+            });
+            actions.appendChild(cloneSsh);
+
+            const openGh = document.createElement('button');
+            openGh.style.cssText = 'padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px; cursor:pointer;';
+            openGh.textContent = '\uD83D\uDD17 Open on GitHub';
+            openGh.addEventListener('click', () => window.api.openExternal(repo.html_url));
+            actions.appendChild(openGh);
+
+            body.appendChild(actions);
+
+            // Language bar
+            const langs = data.languages || {};
+            const langKeys = Object.keys(langs);
+            if (langKeys.length > 0) {
+                const langSection = document.createElement('div');
+                const langTitle = document.createElement('div');
+                langTitle.style.cssText = 'font-size:12px; font-weight:600; color:var(--text-primary); margin-bottom:6px;';
+                langTitle.textContent = 'Languages';
+                langSection.appendChild(langTitle);
+
+                const total = Object.values(langs).reduce((a, b) => a + b, 0);
+                const langColors = {
+                    JavaScript: '#f1e05a', TypeScript: '#3178c6', Python: '#3572A5', Java: '#b07219',
+                    Go: '#00ADD8', Rust: '#dea584', 'C++': '#f34b7d', 'C#': '#178600', PHP: '#4F5D95',
+                    Ruby: '#701516', Swift: '#F05138', Kotlin: '#A97BFF', Dart: '#00B4AB',
+                    Shell: '#89e051', HTML: '#e34c26', CSS: '#563d7c', Vue: '#41b883'
+                };
+
+                const bar = document.createElement('div');
+                bar.style.cssText = 'display:flex; height:8px; border-radius:4px; overflow:hidden; margin-bottom:8px;';
+                langKeys.forEach(l => {
+                    const seg = document.createElement('div');
+                    seg.style.cssText = 'width:' + (langs[l]/total*100).toFixed(1) + '%; background:' + (langColors[l] || '#666') + ';';
+                    seg.title = l + ' ' + (langs[l]/total*100).toFixed(1) + '%';
+                    bar.appendChild(seg);
+                });
+                langSection.appendChild(bar);
+
+                const langList = document.createElement('div');
+                langList.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--text-secondary);';
+                langKeys.forEach(l => {
+                    const item = document.createElement('span');
+                    item.style.cssText = 'display:flex; align-items:center; gap:4px;';
+                    const dot = document.createElement('span');
+                    dot.style.cssText = 'width:8px; height:8px; border-radius:50%; background:' + (langColors[l] || '#666') + ';';
+                    item.appendChild(dot);
+                    const text = document.createElement('span');
+                    text.textContent = l + ' ' + (langs[l]/total*100).toFixed(1) + '%';
+                    item.appendChild(text);
+                    langList.appendChild(item);
+                });
+                langSection.appendChild(langList);
+                body.appendChild(langSection);
+            }
+
+            // Recent commits
+            const commits = data.commits || [];
+            if (commits.length > 0) {
+                const commitsSection = document.createElement('div');
+                const commitsTitle = document.createElement('div');
+                commitsTitle.style.cssText = 'font-size:12px; font-weight:600; color:var(--text-primary); margin-bottom:6px;';
+                commitsTitle.textContent = 'Recent Commits';
+                commitsSection.appendChild(commitsTitle);
+
+                commits.forEach(c => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:12px;';
+                    const sha = document.createElement('span');
+                    sha.style.cssText = 'font-family:monospace; color:var(--accent-blue); flex-shrink:0;';
+                    sha.textContent = (c.sha || '').substring(0, 7);
+                    const msg = document.createElement('span');
+                    msg.style.cssText = 'color:var(--text-primary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+                    msg.textContent = c.commit && c.commit.message ? c.commit.message.split('\n')[0] : '';
+                    const date = document.createElement('span');
+                    date.style.cssText = 'color:var(--text-secondary); flex-shrink:0;';
+                    date.textContent = c.commit && c.commit.author && c.commit.author.date ? new Date(c.commit.author.date).toLocaleDateString() : '';
+                    row.appendChild(sha);
+                    row.appendChild(msg);
+                    row.appendChild(date);
+                    commitsSection.appendChild(row);
+                });
+                body.appendChild(commitsSection);
+            }
+
+            // README
+            const readme = data.readme;
+            if (readme && readme.content) {
+                const readmeSection = document.createElement('div');
+                const readmeTitle = document.createElement('div');
+                readmeTitle.style.cssText = 'font-size:12px; font-weight:600; color:var(--text-primary); margin-bottom:6px;';
+                readmeTitle.textContent = 'README';
+                readmeSection.appendChild(readmeTitle);
+
+                const readmeContent = document.createElement('div');
+                readmeContent.style.cssText = 'background:var(--bg-input); border-radius:6px; padding:12px; font-size:12px; color:var(--text-secondary); line-height:1.6; max-height:300px; overflow-y:auto; white-space:pre-wrap; word-break:break-word;';
+                try {
+                    readmeContent.textContent = atob(readme.content);
+                } catch (e) {
+                    readmeContent.textContent = 'Unable to decode README';
+                }
+                readmeSection.appendChild(readmeContent);
+                body.appendChild(readmeSection);
+            }
+        }
+
+        function closeExploreDetailModal() {
+            document.getElementById('exploreDetailModal').style.display = 'none';
+        }
+
+        // Close explore detail modal on backdrop click
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('exploreDetailModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) closeExploreDetailModal();
+                });
+            }
+        });
 
     </script>
 </body>

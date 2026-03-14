@@ -88,5 +88,14 @@ contextBridge.exposeInMainWorld('api', {
     saveAppConfig: (update) => ipcRenderer.invoke('saveAppConfig', update),
 
     // System
-    setAutoStart: (enabled) => ipcRenderer.invoke('setAutoStart', enabled)
+    setAutoStart: (enabled) => ipcRenderer.invoke('setAutoStart', enabled),
+
+    // GitHub Explore
+    searchRepos: (data) => ipcRenderer.invoke('searchRepos', data),
+    searchTopics: (data) => ipcRenderer.invoke('searchTopics', data),
+    starRepo: (data) => ipcRenderer.invoke('starRepo', data),
+    unstarRepo: (data) => ipcRenderer.invoke('unstarRepo', data),
+    checkStarred: (data) => ipcRenderer.invoke('checkStarred', data),
+    forkRepo: (data) => ipcRenderer.invoke('forkRepo', data),
+    getExploreRepoDetail: (data) => ipcRenderer.invoke('getExploreRepoDetail', data)
 });

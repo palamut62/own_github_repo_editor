@@ -118,7 +118,7 @@ app.on('window-all-closed', () => {
 });
 
 // Helper for HTTP requests
-function githubRequest(path, method, token, body = null) {
+function githubRequest(path, method, token, body = null, extraHeaders = {}) {
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'api.github.com',
@@ -127,7 +127,8 @@ function githubRequest(path, method, token, body = null) {
             headers: {
                 'User-Agent': 'GitHub-Repo-Cleaner',
                 'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                ...extraHeaders
             }
         };
 
@@ -2185,6 +2186,99 @@ ipcMain.handle('createGitignore', async (event, { folderPath, projectType }) => 
         return { success: true, type: projectType };
     } catch (e) {
         return { success: false, error: e.message };
+    }
+});
+
+// ── GitHub Explore ──────────────────────────────────────────────────────────
+ipcMain.handle('searchRepos', async (event, { token, query, language, sort, order, page }) => {
+    try {
+        let q = query || 'stars:>100';
+        if (language) q += ` language:${language}`;
+        const s = sort || 'stars';
+        const o = order || 'desc';
+        const p = page || 1;
+        const result = await githubRequest(
+            `/search/repositories?q=${encodeURIComponent(q)}&sort=${s}&order=${o}&per_page=30&page=${p}`,
+            'GET', token
+        );
+        return result;
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('searchTopics', async (event, { token, query }) => {
+    try {
+        const q = query || 'is:featured';
+        const result = await githubRequest(
+            `/search/topics?q=${encodeURIComponent(q)}&per_page=30`,
+            'GET', token, null,
+            { 'Accept': 'application/vnd.github.mercy-preview+json' }
+        );
+        return result;
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('starRepo', async (event, { token, fullName }) => {
+    try {
+        await githubRequest(`/user/starred/${fullName}`, 'PUT', token);
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('unstarRepo', async (event, { token, fullName }) => {
+    try {
+        await githubRequest(`/user/starred/${fullName}`, 'DELETE', token);
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('checkStarred', async (event, { token, fullName }) => {
+    try {
+        await githubRequest(`/user/starred/${fullName}`, 'GET', token);
+        return { starred: true };
+    } catch (e) {
+        if (e.message && e.message.includes('404')) {
+            return { starred: false };
+        }
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('forkRepo', async (event, { token, fullName }) => {
+    try {
+        const result = await githubRequest(`/repos/${fullName}/forks`, 'POST', token);
+        return result;
+    } catch (e) {
+        return { error: e.message };
+    }
+});
+
+ipcMain.handle('getExploreRepoDetail', async (event, { token, fullName }) => {
+    try {
+        const [repo, languages, commits, readme, starred] = await Promise.allSettled([
+            githubRequest(`/repos/${fullName}`, 'GET', token),
+            githubRequest(`/repos/${fullName}/languages`, 'GET', token),
+            githubRequest(`/repos/${fullName}/commits?per_page=5`, 'GET', token),
+            githubRequest(`/repos/${fullName}/readme`, 'GET', token),
+            githubRequest(`/user/starred/${fullName}`, 'GET', token)
+        ]);
+
+        return {
+            repo: repo.status === 'fulfilled' ? repo.value : null,
+            languages: languages.status === 'fulfilled' ? languages.value : {},
+            commits: commits.status === 'fulfilled' ? commits.value : [],
+            readme: readme.status === 'fulfilled' ? readme.value : null,
+            starred: starred.status === 'fulfilled'
+        };
+    } catch (e) {
+        return { error: e.message };
     }
 });
 
