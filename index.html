@@ -1250,7 +1250,6 @@
                     </div>
                 </div>
             </div>
-        </div>
 
             <!-- Discovery -->
             <div class="nav-group">
@@ -1272,6 +1271,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 
         <div class="sidebar-footer">
             <div class="nav-item" onclick="toggleTheme()">
@@ -1298,7 +1298,7 @@
                         </svg>
                     </div>
                 </div>
-                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.3.0</div>
+                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.3.1</div>
             </div>
         </div>
     </div>
@@ -1565,7 +1565,7 @@
         </div>
 
         <!-- ═══════ EXPLORE: SEARCH ═══════ -->
-        <div class="view-section" id="view-exploreSearch" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+        <div class="view-section" id="view-exploreSearch" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px; flex:1; overflow:hidden;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                 <input type="text" id="exploreSearchInput" placeholder="Search repositories..."
                     style="flex:1; min-width:200px; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:14px;"
@@ -1609,7 +1609,7 @@
         </div>
 
         <!-- ═══════ EXPLORE: TRENDING ═══════ -->
-        <div class="view-section" id="view-exploreTrending" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+        <div class="view-section" id="view-exploreTrending" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px; flex:1; overflow:hidden;">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                 <select id="exploreTrendingTime" onchange="loadTrendingRepos()" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:13px;">
                     <option value="weekly">This Week</option>
@@ -1645,7 +1645,7 @@
         </div>
 
         <!-- ═══════ EXPLORE: TOPICS ═══════ -->
-        <div class="view-section" id="view-exploreTopics" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px;">
+        <div class="view-section" id="view-exploreTopics" style="display:none; flex-direction:column; gap:16px; padding: 0 30px 20px; flex:1; overflow-y:auto;">
             <div id="exploreTopicsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px;"></div>
             <div id="exploreTopicRepos" style="display:none; flex-direction:column; gap:8px;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
@@ -4931,12 +4931,51 @@ npm start</pre>
 
         // ═══════ EXPLORE: TOPICS ═══════
         const popularTopics = [
-            'machine-learning', 'react', 'python', 'javascript', 'typescript',
-            'nodejs', 'docker', 'kubernetes', 'rust', 'go', 'vue', 'angular',
-            'nextjs', 'tailwindcss', 'cli', 'api', 'database', 'devops',
-            'security', 'blockchain', 'flutter', 'android', 'ios', 'swift',
-            'artificial-intelligence', 'deep-learning', 'data-science', 'web',
-            'linux', 'game-development', 'graphql', 'testing'
+            // AI & Machine Learning
+            'artificial-intelligence', 'machine-learning', 'deep-learning', 'natural-language-processing',
+            'computer-vision', 'generative-ai', 'llm', 'chatgpt', 'openai', 'langchain',
+            'stable-diffusion', 'transformers', 'pytorch', 'tensorflow', 'huggingface',
+            'reinforcement-learning', 'neural-network', 'gpt', 'ai-agent', 'rag',
+            // AI Models & Tools
+            'claude', 'gemini', 'llama', 'mistral', 'ollama', 'copilot',
+            'cursor', 'chatbot', 'text-generation', 'image-generation', 'voice-ai',
+            'mlops', 'model-training', 'fine-tuning', 'embeddings', 'vector-database',
+            // AI IDEs & Dev Tools
+            'vscode', 'neovim', 'ide', 'code-editor', 'developer-tools', 'devtools',
+            'linter', 'formatter', 'debugger', 'terminal', 'dotfiles',
+            // Data Science
+            'data-science', 'data-analysis', 'data-visualization', 'pandas', 'jupyter',
+            'notebook', 'statistics', 'big-data', 'data-engineering', 'etl',
+            // Web Development
+            'react', 'vue', 'angular', 'nextjs', 'svelte', 'astro', 'remix',
+            'tailwindcss', 'css', 'html', 'sass', 'web', 'frontend', 'backend',
+            'fullstack', 'jamstack', 'pwa', 'web-components', 'webpack', 'vite',
+            // Programming Languages
+            'javascript', 'typescript', 'python', 'rust', 'go', 'java', 'kotlin',
+            'swift', 'csharp', 'cpp', 'php', 'ruby', 'dart', 'elixir', 'zig', 'lua',
+            // Mobile & Desktop
+            'flutter', 'react-native', 'android', 'ios', 'electron', 'tauri',
+            'mobile', 'cross-platform', 'swiftui', 'jetpack-compose',
+            // Backend & Infrastructure
+            'nodejs', 'deno', 'bun', 'express', 'fastapi', 'django', 'spring-boot',
+            'graphql', 'rest-api', 'grpc', 'websocket', 'microservices', 'serverless',
+            // DevOps & Cloud
+            'docker', 'kubernetes', 'terraform', 'ansible', 'ci-cd', 'github-actions',
+            'aws', 'azure', 'gcp', 'cloud', 'devops', 'linux', 'nginx',
+            // Database
+            'database', 'postgresql', 'mysql', 'mongodb', 'redis', 'sqlite',
+            'supabase', 'firebase', 'prisma', 'drizzle',
+            // Security & Networking
+            'security', 'cybersecurity', 'hacking', 'pentesting', 'encryption',
+            'authentication', 'oauth', 'networking', 'vpn', 'proxy',
+            // Blockchain & Web3
+            'blockchain', 'ethereum', 'solidity', 'web3', 'defi', 'nft', 'crypto',
+            // Other
+            'cli', 'api', 'automation', 'bot', 'scraping', 'crawler',
+            'game-development', 'unity', 'godot', 'unreal-engine',
+            'robotics', 'iot', 'embedded', 'raspberry-pi', 'arduino',
+            'testing', 'documentation', 'open-source', 'awesome', 'self-hosted',
+            'home-automation', 'home-assistant', 'privacy', 'monitoring', 'logging'
         ];
 
         let currentTopic = '';
