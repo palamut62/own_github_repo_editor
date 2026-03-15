@@ -3,5 +3,8 @@
   "defaultBranch": "main",
   "autoGitignore": true,
   "commitTemplateType": "simple",
-  "commitTemplateCustom": ""
+  "commitTemplateCustom": "",
+  "theme": "dark",
+  "aiModel": "moonshotai/kimi-k2.5",
+  "autoStart": true
 }
