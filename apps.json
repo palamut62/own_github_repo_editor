@@ -7,9 +7,18 @@
     "github": "https://github.com/palamut62"
   },
   "categories": [
-    { "id": "developer-tools", "name": "Developer Tools" },
-    { "id": "utilities", "name": "Utilities" },
-    { "id": "productivity", "name": "Productivity" }
+    {
+      "id": "developer-tools",
+      "name": "Developer Tools"
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities"
+    },
+    {
+      "id": "productivity",
+      "name": "Productivity"
+    }
   ],
   "apps": [
     {
@@ -18,9 +27,16 @@
       "subtitle": "AI-powered GitHub repository management",
       "description": "Electron desktop app for managing, cleaning, and organizing GitHub repositories with AI-powered features like smart rename, README generation, and commit analysis.",
       "longDescription": "A comprehensive Electron desktop application that streamlines GitHub repository management with AI-powered features. Manage all your repositories with source/fork distinction, publish local projects to GitHub with smart .gitignore generation, analyze stale and large repos, sync forks, and leverage AI for smart renaming, description generation, README creation, and commit message optimization using Conventional Commits standards.",
-      "icon": "https://raw.githubusercontent.com/palamut62/github-repo-cleaner-ai/main/assets/icon-256.png",
-      "iconStyle": { "borderRadius": "22%", "objectFit": "cover" },
-      "category": ["developer-tools", "utilities", "productivity"],
+      "icon": "https://raw.githubusercontent.com/palamut62/github-repo-cleaner-ai/main/assets/icon.png",
+      "iconStyle": {
+        "borderRadius": "22%",
+        "objectFit": "cover"
+      },
+      "category": [
+        "developer-tools",
+        "utilities",
+        "productivity"
+      ],
       "platform": "Desktop",
       "price": "Free",
       "github": "https://github.com/palamut62/github-repo-cleaner-ai",
