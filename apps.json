@@ -1,0 +1,44 @@
+{
+  "$schema": "https://wvw.dev/apps.schema.json",
+  "store": {
+    "name": "Palamut Apps",
+    "developer": "palamut62",
+    "tagline": "AI-powered developer tools",
+    "github": "https://github.com/palamut62"
+  },
+  "categories": [
+    { "id": "developer-tools", "name": "Developer Tools" },
+    { "id": "utilities", "name": "Utilities" },
+    { "id": "productivity", "name": "Productivity" }
+  ],
+  "apps": [
+    {
+      "id": "github-repo-cleaner-ai",
+      "name": "GitHub Repo Manager & Cleaner",
+      "subtitle": "AI-powered GitHub repository management",
+      "description": "Electron desktop app for managing, cleaning, and organizing GitHub repositories with AI-powered features like smart rename, README generation, and commit analysis.",
+      "longDescription": "A comprehensive Electron desktop application that streamlines GitHub repository management with AI-powered features. Manage all your repositories with source/fork distinction, publish local projects to GitHub with smart .gitignore generation, analyze stale and large repos, sync forks, and leverage AI for smart renaming, description generation, README creation, and commit message optimization using Conventional Commits standards.",
+      "icon": "https://raw.githubusercontent.com/palamut62/github-repo-cleaner-ai/main/assets/icon-256.png",
+      "iconStyle": { "borderRadius": "22%", "objectFit": "cover" },
+      "category": ["developer-tools", "utilities", "productivity"],
+      "platform": "Desktop",
+      "price": "Free",
+      "github": "https://github.com/palamut62/github-repo-cleaner-ai",
+      "homepage": "https://github-repo-cleaner-aiwebpage.vercel.app/",
+      "language": "JavaScript",
+      "features": [
+        "View and manage all GitHub repositories with Source/Fork filtering",
+        "Publish local folders to GitHub with smart .gitignore generation",
+        "AI Smart Rename and description generation via OpenRouter API",
+        "AI-powered README creation and commit message analysis",
+        "Repository analysis: stale repos, large repos, unchanged forks",
+        "Fork sync status checking and one-click synchronization",
+        "Commit message templates: Simple, Conventional, Scoped, Custom"
+      ],
+      "screenshots": [
+        "https://raw.githubusercontent.com/palamut62/github-repo-cleaner-ai/main/screenshoot.png"
+      ],
+      "requirements": "GitHub Personal Access Token, OpenRouter API Key (for AI features)"
+    }
+  ]
+}
