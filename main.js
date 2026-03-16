@@ -1760,7 +1760,27 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                 status: 'processing'
             });
             execSync('git add .', { cwd: repo.folderPath, stdio: 'pipe' });
-            result.steps.push({ step: 'Files staged', status: 'success' });
+            // Check how many files were staged
+            const stagedFiles = execSync('git diff --cached --name-only', { cwd: repo.folderPath }).toString().trim();
+            const stagedCount = stagedFiles ? stagedFiles.split('\n').length : 0;
+            console.log(`[createAndPushRepos] Staged ${stagedCount} file(s) in ${repo.folderPath}`);
+            if (stagedCount > 0) {
+                console.log(`[createAndPushRepos] Files: ${stagedFiles.split('\n').slice(0, 10).join(', ')}${stagedCount > 10 ? '...' : ''}`);
+            } else {
+                // List what's in the folder to understand why nothing staged
+                const dirContents = fs.readdirSync(repo.folderPath).filter(f => f !== '.git');
+                console.log(`[createAndPushRepos] WARNING: 0 files staged! Folder contents: ${dirContents.join(', ') || '(empty)'}`);
+                if (fs.existsSync(path.join(repo.folderPath, '.gitignore'))) {
+                    const gi = fs.readFileSync(path.join(repo.folderPath, '.gitignore'), 'utf8');
+                    console.log(`[createAndPushRepos] .gitignore contents:\n${gi}`);
+                }
+            }
+            result.steps.push({ step: `Files staged (${stagedCount} files)`, status: stagedCount > 0 ? 'success' : 'warning' });
+            event.sender.send('publish-progress', {
+                repoName: repo.repoName,
+                message: stagedCount > 0 ? `${stagedCount} file(s) staged` : '⚠️ No files staged! Check .gitignore',
+                status: stagedCount > 0 ? 'processing' : 'error'
+            });
 
             // 6. Commit (if needed)
             event.sender.send('publish-progress', {
@@ -1826,11 +1846,14 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             const authUrl = cloneUrl.replace('https://', `https://${token}@`);
             execFileSync('git', ['remote', 'set-url', 'origin', authUrl], { cwd: repo.folderPath, stdio: 'pipe' });
             try {
-                execSync(`git push -u origin ${branchName}`, { cwd: repo.folderPath, stdio: 'pipe', timeout: 120000 });
+                const pushOutput = execSync(`git push -u origin ${branchName}`, { cwd: repo.folderPath, timeout: 120000, encoding: 'utf8' });
+                console.log(`[createAndPushRepos] Push output: ${pushOutput}`);
             } catch (pushErr) {
+                const errMsg = pushErr.stderr || pushErr.stdout || pushErr.message;
+                console.error(`[createAndPushRepos] Push FAILED:`, errMsg);
                 // Restore clean URL before re-throwing
                 execFileSync('git', ['remote', 'set-url', 'origin', cloneUrl], { cwd: repo.folderPath, stdio: 'pipe' });
-                throw new Error(`Push failed: ${pushErr.stderr ? pushErr.stderr.toString() : pushErr.message}`);
+                throw new Error(`Push failed: ${errMsg}`);
             }
             execFileSync('git', ['remote', 'set-url', 'origin', cloneUrl], { cwd: repo.folderPath, stdio: 'pipe' });
 
