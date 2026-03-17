@@ -1730,25 +1730,27 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             execFileSync('git', ['config', 'user.email', userEmail], { cwd: repo.folderPath, stdio: 'pipe' });
             execFileSync('git', ['config', 'user.name', userName], { cwd: repo.folderPath, stdio: 'pipe' });
 
-            // 4b. Auto-generate .gitignore if requested
-            if (repo.autoGitignore) {
-                // Use type already detected by the frontend; fall back to local detection
+            // 4b. Auto-generate .gitignore (always if none exists, to prevent large files like node_modules)
+            {
                 const detectedType = repo.detectedType || detectProjectType(repo.folderPath);
                 const gitignorePath = path.join(repo.folderPath, '.gitignore');
-                const content = GITIGNORE_TEMPLATES[detectedType] || GITIGNORE_TEMPLATES.generic;
-                try {
-                    fs.writeFileSync(gitignorePath, content, { flag: 'wx' });
+                const content = getGitignore(detectedType);
+                if (!fs.existsSync(gitignorePath)) {
+                    fs.writeFileSync(gitignorePath, content, 'utf-8');
                     event.sender.send('publish-progress', {
                         repoName: repo.repoName,
                         message: 'Generating .gitignore…',
                         status: 'processing'
                     });
                     result.steps.push({ step: `.gitignore created (${detectedType})`, status: 'success' });
-                } catch (e) {
-                    if (e.code === 'EEXIST') {
-                        result.steps.push({ step: '.gitignore already exists, skipped', status: 'info' });
+                } else {
+                    // Ensure node_modules is in existing .gitignore
+                    const existing = fs.readFileSync(gitignorePath, 'utf-8');
+                    if (!existing.includes('node_modules')) {
+                        fs.appendFileSync(gitignorePath, '\n# Auto-added\nnode_modules/\n');
+                        result.steps.push({ step: 'node_modules/ added to existing .gitignore', status: 'success' });
                     } else {
-                        throw e;
+                        result.steps.push({ step: '.gitignore already exists', status: 'info' });
                     }
                 }
             }
@@ -2090,6 +2092,19 @@ ipcMain.handle('quickPush', async (event, { folderPath, token, commitMessage }) 
     try {
         const cwd = folderPath;
 
+        // Ensure .gitignore exists to prevent pushing large files
+        const qpGitignorePath = path.join(cwd, '.gitignore');
+        if (!fs.existsSync(qpGitignorePath)) {
+            const qpType = detectProjectType(cwd);
+            const qpContent = getGitignore(qpType);
+            fs.writeFileSync(qpGitignorePath, qpContent, 'utf-8');
+        } else {
+            const qpExisting = fs.readFileSync(qpGitignorePath, 'utf-8');
+            if (!qpExisting.includes('node_modules') && fs.existsSync(path.join(cwd, 'node_modules'))) {
+                fs.appendFileSync(qpGitignorePath, '\n# Auto-added\nnode_modules/\n');
+            }
+        }
+
         // Stage & commit if there are changes
         const statusOut = execSync('git status --porcelain', { cwd, timeout: 10000 }).toString().trim();
         if (statusOut.length > 0) {
@@ -2204,7 +2219,7 @@ ipcMain.handle('createGitignore', async (event, { folderPath, projectType }) => 
         if (fs.existsSync(gitignorePath)) {
             return { success: false, existed: true, error: '.gitignore already exists' };
         }
-        const content = GITIGNORE_TEMPLATES[projectType] || GITIGNORE_TEMPLATES.generic;
+        const content = getGitignore(projectType);
         fs.writeFileSync(gitignorePath, content, 'utf-8');
         return { success: true, type: projectType };
     } catch (e) {
@@ -2306,6 +2321,64 @@ ipcMain.handle('getExploreRepoDetail', async (event, { token, fullName }) => {
 });
 
 // ─── Built-in .gitignore Templates ────────────────────────────────────────────
+const GITIGNORE_COMMON_SUFFIX = `
+# ─── IDE & Editors ───
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ─── AI Tools & Agents ───
+.claude/
+.claude_memory/
+.cursorrules
+.cursorignore
+.cursor/
+.aider*
+.codeium/
+.continue/
+.codex/
+.tabnine/
+copilot-*.md
+.github/copilot/
+
+# ─── OS Files ───
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ─── Logs ───
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ─── Environment & Secrets ───
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+`;
+
+function getGitignore(type) {
+    const base = GITIGNORE_TEMPLATES[type] || GITIGNORE_TEMPLATES.generic;
+    return base.trimEnd() + '\n' + GITIGNORE_COMMON_SUFFIX;
+}
+
 const GITIGNORE_TEMPLATES = {
     node: `# Dependencies
 node_modules/
