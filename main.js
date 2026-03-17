@@ -1714,12 +1714,31 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
             });
 
             const gitDir = path.join(repo.folderPath, '.git');
+            if (fs.existsSync(gitDir)) {
+                // Check if large/ignored files are baked into git history
+                try {
+                    const trackedLarge = execSync(
+                        'git log --all --diff-filter=A --name-only --format="" -- "node_modules/*" "*.exe"',
+                        { cwd: repo.folderPath, stdio: ['pipe','pipe','pipe'], timeout: 10000 }
+                    ).toString().trim();
+                    if (trackedLarge.length > 0) {
+                        // Large files in history — nuke .git and start fresh
+                        fs.rmSync(gitDir, { recursive: true, force: true });
+                        console.log(`[createAndPushRepos] Removed dirty .git history (had large files in commits)`);
+                        result.steps.push({ step: 'Cleaned dirty git history (large files detected)', status: 'success' });
+                    }
+                } catch (e) {
+                    // If check fails, be safe and re-init
+                    fs.rmSync(gitDir, { recursive: true, force: true });
+                    console.log(`[createAndPushRepos] Removed .git (check failed, re-init for safety)`);
+                }
+            }
             if (!fs.existsSync(gitDir)) {
                 execSync('git init', { cwd: repo.folderPath, stdio: 'pipe' });
                 try {
                     execSync('git checkout -b main', { cwd: repo.folderPath, stdio: 'pipe' });
                 } catch (e) { /* branch may already exist */ }
-                result.steps.push({ step: 'Git initialised (new repo)', status: 'success' });
+                result.steps.push({ step: 'Git initialised (clean)', status: 'success' });
             } else {
                 result.steps.push({ step: 'Git already initialised', status: 'info' });
             }
