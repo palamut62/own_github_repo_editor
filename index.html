@@ -1698,15 +1698,17 @@
 
             <!-- AI Model Section -->
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">AI Model</div>
-            <select id="settingsAIModel" class="input-dark" style="width:100%; padding:8px; margin-bottom:4px;">
+            <div style="display:flex; gap:6px; margin-bottom:4px;">
+                <input type="text" id="settingsModelSearch" class="auth-input" placeholder="Search models..." style="flex:1; padding:8px; font-size:12px;" oninput="filterModelList()">
+                <button onclick="loadOpenRouterModels()" class="btn-primary" style="padding:6px 14px; font-size:11px; white-space:nowrap;" id="btnFetchModels">Fetch Models</button>
+            </div>
+            <select id="settingsAIModel" class="input-dark" style="width:100%; padding:8px; margin-bottom:4px;" size="1">
                 <option value="moonshotai/kimi-k2.5">Kimi K2.5 (moonshotai/kimi-k2.5)</option>
-                <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Free)</option>
-                <option value="google/gemma-3-27b-it:free">Gemma 3 27B (Free)</option>
-                <option value="meta-llama/llama-4-maverick:free">Llama 4 Maverick (Free)</option>
-                <option value="anthropic/claude-sonnet-4">Claude Sonnet 4</option>
-                <option value="openai/gpt-4o">GPT-4o</option>
             </select>
-            <div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px;">Select AI model for all AI operations (rename, description, README, commits)</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-size:11px; color:var(--text-secondary);">Select AI model for all AI operations</div>
+                <div id="modelCount" style="font-size:10px; color:var(--text-secondary);"></div>
+            </div>
 
             <!-- Defaults Section -->
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Publish Defaults</div>
@@ -2746,11 +2748,94 @@
             document.getElementById('settingsCommitCustom').value    = tmplCustom;
             document.getElementById('settingsCommitCustom').style.display = tmplType === 'custom' ? 'block' : 'none';
 
-            document.getElementById('settingsAIModel').value = config.aiModel || 'moonshotai/kimi-k2.5';
+            // Set saved model as placeholder until API models load
+            const select = document.getElementById('settingsAIModel');
+            const savedModel = config.aiModel || 'moonshotai/kimi-k2.5';
+            select.innerHTML = `<option value="${savedModel}">${savedModel}</option>`;
+            select.value = savedModel;
+
             document.getElementById('settingsTheme').value = config.theme || 'dark';
             document.getElementById('settingsAutoStart').checked = config.autoStart === true;
 
             document.getElementById('settingsModal').style.display = 'flex';
+
+            // Load models from cache (don't auto-fetch from API)
+            document.getElementById('settingsModelSearch').value = '';
+            loadOpenRouterModels(false);
+        }
+
+        // ─── OpenRouter Model Fetching ────────────────────────────────────────
+        let allFetchedModels = [];
+
+        async function loadOpenRouterModels(forceRefresh = true) {
+            const btn = document.getElementById('btnFetchModels');
+            const select = document.getElementById('settingsAIModel');
+            const savedModel = select.value;
+
+            // Try cache first (unless force refresh)
+            if (!forceRefresh) {
+                const config = cachedAppConfig || {};
+                if (config.cachedModels && config.cachedModels.length > 0) {
+                    allFetchedModels = config.cachedModels;
+                    renderModelList(allFetchedModels, savedModel);
+                    document.getElementById('modelCount').textContent = `${allFetchedModels.length} models (cached)`;
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            const routerKey = document.getElementById('settingsRouterKey').value;
+            const result = await window.api.fetchOpenRouterModels(routerKey);
+
+            if (result.success && result.models.length > 0) {
+                allFetchedModels = result.models;
+                renderModelList(allFetchedModels, savedModel);
+                document.getElementById('modelCount').textContent = `${result.models.length} models`;
+                // Cache models to config
+                await window.api.saveAppConfig({ cachedModels: result.models });
+                if (cachedAppConfig) cachedAppConfig.cachedModels = result.models;
+                showToast(`${result.models.length} models loaded`, 'success');
+            } else {
+                showToast('Failed to fetch models: ' + (result.error || 'Unknown error'), 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Fetch Models';
+        }
+
+        function renderModelList(models, selectedValue) {
+            const select = document.getElementById('settingsAIModel');
+            select.innerHTML = '';
+            models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                const freeTag = m.free ? ' 🆓' : '';
+                const ctxK = m.context_length ? ` (${Math.round(m.context_length/1024)}K)` : '';
+                opt.textContent = `${freeTag} ${m.name}${ctxK}`.trim();
+                select.appendChild(opt);
+            });
+            // Restore selection
+            if (selectedValue && [...select.options].some(o => o.value === selectedValue)) {
+                select.value = selectedValue;
+            }
+        }
+
+        function filterModelList() {
+            const query = document.getElementById('settingsModelSearch').value.toLowerCase().trim();
+            if (allFetchedModels.length === 0) return;
+            const savedModel = document.getElementById('settingsAIModel').value;
+            if (!query) {
+                renderModelList(allFetchedModels, savedModel);
+                document.getElementById('modelCount').textContent = `${allFetchedModels.length} models`;
+                return;
+            }
+            const filtered = allFetchedModels.filter(m =>
+                m.id.toLowerCase().includes(query) || m.name.toLowerCase().includes(query)
+            );
+            renderModelList(filtered, savedModel);
+            document.getElementById('modelCount').textContent = `${filtered.length}/${allFetchedModels.length}`;
         }
 
         function onSettingsTemplateChange() {

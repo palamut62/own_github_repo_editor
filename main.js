@@ -295,6 +295,42 @@ ipcMain.handle('saveRouterKey', async (event, key) => {
     }
 });
 
+// ─── Fetch OpenRouter Models ─────────────────────────────────────────────────
+ipcMain.handle('fetchOpenRouterModels', async (event, routerKey) => {
+    return new Promise((resolve) => {
+        const options = {
+            hostname: 'openrouter.ai',
+            path: '/api/v1/models',
+            method: 'GET',
+            headers: routerKey ? { 'Authorization': `Bearer ${routerKey}` } : {}
+        };
+        const req = require('https').request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    const models = (json.data || [])
+                        .map(m => ({
+                            id: m.id,
+                            name: m.name || m.id,
+                            context_length: m.context_length || 0,
+                            pricing: m.pricing || {},
+                            free: (m.pricing?.prompt === '0' && m.pricing?.completion === '0')
+                        }))
+                        .reverse();
+                    resolve({ success: true, models });
+                } catch (e) {
+                    resolve({ success: false, error: e.message, models: [] });
+                }
+            });
+        });
+        req.on('error', (e) => resolve({ success: false, error: e.message, models: [] }));
+        req.setTimeout(15000, () => { req.destroy(); resolve({ success: false, error: 'Timeout', models: [] }); });
+        req.end();
+    });
+});
+
 // 6. AI & Rename Logic Helpers
 function getAIModel() {
     try {

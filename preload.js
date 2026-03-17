@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('api', {
     // AI & Rename
     getRouterKey: () => ipcRenderer.invoke('getRouterKey'),
     saveRouterKey: (key) => ipcRenderer.invoke('saveRouterKey', key),
+    fetchOpenRouterModels: (key) => ipcRenderer.invoke('fetchOpenRouterModels', key),
     analyzeReposAI: (data) => ipcRenderer.invoke('analyzeReposAI', data),
     executeRenames: (data) => ipcRenderer.invoke('executeRenames', data),
 
