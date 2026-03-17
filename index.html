@@ -938,6 +938,9 @@
             max-height: 160px;
             overflow-y: auto;
             line-height: 1.7;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
         }
 
         .log-success { color: var(--accent-green); }
@@ -1453,7 +1456,10 @@
             <div style="flex-shrink:0; margin-top: 16px;">
                 <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                     <span>Progress Log</span>
-                    <button onclick="document.getElementById('publishLog').innerHTML=''" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:11px;">Clear</button>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="copyPublishLog()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:11px;" title="Copy logs">📋 Copy</button>
+                        <button onclick="document.getElementById('publishLog').innerHTML=''" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:11px;">Clear</button>
+                    </div>
                 </div>
                 <div id="publishLog" class="publish-log"></div>
             </div>
@@ -4225,6 +4231,13 @@ npm start</pre>
             };
             const s = map[status] || { cls: 'chip-pending', label: status };
             return `<span class="status-chip ${s.cls}">${s.label}</span>`;
+        }
+
+        function copyPublishLog() {
+            const log = document.getElementById('publishLog');
+            const text = Array.from(log.children).map(el => el.textContent).join('\n');
+            if (!text.trim()) { showToast('No logs to copy', 'info'); return; }
+            navigator.clipboard.writeText(text).then(() => showToast('Logs copied!', 'success'));
         }
 
         function addLog(msg, type = 'info') {

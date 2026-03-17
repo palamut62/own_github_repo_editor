@@ -1755,6 +1755,68 @@ ipcMain.handle('createAndPushRepos', async (event, { token, repos }) => {
                 }
             }
 
+            // 4c. Remove ignored dirs from git index (even if freshly staged)
+            {
+                const ignoredDirs = ['node_modules', '.next', '__pycache__', '.venv', 'venv', '.output', '.nuxt'];
+                for (const dir of ignoredDirs) {
+                    const dirPath = path.join(repo.folderPath, dir);
+                    if (fs.existsSync(dirPath)) {
+                        try {
+                            execSync(`git rm -r --cached "${dir}"`, { cwd: repo.folderPath, stdio: 'pipe' });
+                            console.log(`[createAndPushRepos] Removed ${dir} from git index`);
+                            result.steps.push({ step: `Removed ${dir}/ from git index`, status: 'success' });
+                        } catch (e) {
+                            // Not in index — good
+                        }
+                    }
+                }
+            }
+
+            // 4d. Scan for files > 100MB and auto-add to .gitignore
+            {
+                const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+                const gitignorePath = path.join(repo.folderPath, '.gitignore');
+                const largeFiles = [];
+
+                function scanForLargeFiles(dir, relative) {
+                    try {
+                        const entries = fs.readdirSync(dir, { withFileTypes: true });
+                        for (const entry of entries) {
+                            const fullPath = path.join(dir, entry.name);
+                            const relPath = relative ? `${relative}/${entry.name}` : entry.name;
+                            if (entry.name === '.git' || entry.name === 'node_modules') continue;
+                            if (entry.isDirectory()) {
+                                scanForLargeFiles(fullPath, relPath);
+                            } else if (entry.isFile()) {
+                                try {
+                                    const stat = fs.statSync(fullPath);
+                                    if (stat.size > MAX_FILE_SIZE) {
+                                        largeFiles.push(relPath);
+                                    }
+                                } catch (e) {}
+                            }
+                        }
+                    } catch (e) {}
+                }
+                scanForLargeFiles(repo.folderPath, '');
+
+                if (largeFiles.length > 0) {
+                    const existing = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf-8') : '';
+                    const toAdd = largeFiles.filter(f => !existing.includes(f));
+                    if (toAdd.length > 0) {
+                        fs.appendFileSync(gitignorePath, '\n# Auto-excluded (>100MB)\n' + toAdd.join('\n') + '\n');
+                        console.log(`[createAndPushRepos] Auto-excluded large files: ${toAdd.join(', ')}`);
+                        result.steps.push({ step: `Excluded ${toAdd.length} large file(s) (>100MB)`, status: 'success' });
+                    }
+                    // Also remove from index if tracked
+                    for (const f of largeFiles) {
+                        try {
+                            execSync(`git rm --cached "${f}" 2>/dev/null`, { cwd: repo.folderPath, stdio: 'pipe' });
+                        } catch (e) {}
+                    }
+                }
+            }
+
             // 5. Stage all files
             event.sender.send('publish-progress', {
                 repoName: repo.repoName,
@@ -2102,6 +2164,14 @@ ipcMain.handle('quickPush', async (event, { folderPath, token, commitMessage }) 
             const qpExisting = fs.readFileSync(qpGitignorePath, 'utf-8');
             if (!qpExisting.includes('node_modules') && fs.existsSync(path.join(cwd, 'node_modules'))) {
                 fs.appendFileSync(qpGitignorePath, '\n# Auto-added\nnode_modules/\n');
+            }
+        }
+
+        // Remove ignored dirs from git index
+        const qpIgnoredDirs = ['node_modules', '.next', '__pycache__', '.venv', 'venv'];
+        for (const dir of qpIgnoredDirs) {
+            if (fs.existsSync(path.join(cwd, dir))) {
+                try { execSync(`git rm -r --cached "${dir}"`, { cwd, stdio: 'pipe' }); } catch (e) {}
             }
         }
 
