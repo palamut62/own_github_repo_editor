@@ -582,6 +582,21 @@
             color: white;
         }
 
+        .settings-tab {
+            padding: 6px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .settings-tab:hover { color: var(--text-primary); }
+        .settings-tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
         .auth-input {
             width: 100%;
             padding: 10px;
@@ -1684,84 +1699,94 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
-        <div class="modal-box" style="position: relative; padding-top: 36px; max-width: 520px; width: 90%;">
+        <div class="modal-box" style="position: relative; padding-top: 36px; max-width: 440px; width: 88%;">
             <div onclick="document.getElementById('settingsModal').style.display='none'"
                 class="modal-close-btn" title="Close">✕</div>
-            <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
+            <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 14px;">Settings</h3>
 
-            <!-- API Keys Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">API Keys</div>
-            <label style="font-size:12px;">GitHub Token:</label>
-            <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
-            <label style="font-size:12px;">OpenRouter Key:</label>
-            <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
-
-            <!-- AI Model Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">AI Model</div>
-            <div style="display:flex; gap:6px; margin-bottom:4px;">
-                <input type="text" id="settingsModelSearch" class="auth-input" placeholder="Search models..." style="flex:1; padding:8px; font-size:12px;" oninput="filterModelList()">
-                <button onclick="loadOpenRouterModels()" class="btn-primary" style="padding:6px 14px; font-size:11px; white-space:nowrap;" id="btnFetchModels">Fetch Models</button>
-            </div>
-            <select id="settingsAIModel" class="input-dark" style="width:100%; padding:8px; margin-bottom:4px;" size="1">
-                <option value="moonshotai/kimi-k2.5">Kimi K2.5 (moonshotai/kimi-k2.5)</option>
-            </select>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div style="font-size:11px; color:var(--text-secondary);">Select AI model for all AI operations</div>
-                <div id="modelCount" style="font-size:10px; color:var(--text-secondary);"></div>
+            <!-- Tabs -->
+            <div style="display:flex; gap:0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
+                <div class="settings-tab active" data-tab="general" onclick="switchSettingsTab('general')">General</div>
+                <div class="settings-tab" data-tab="api" onclick="switchSettingsTab('api')">API & AI</div>
+                <div class="settings-tab" data-tab="publish" onclick="switchSettingsTab('publish')">Publish</div>
             </div>
 
-            <!-- Defaults Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Publish Defaults</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div>
-                    <label style="font-size:12px; display:block; margin-bottom:4px;">Default Visibility:</label>
-                    <select id="settingsDefaultVisibility" class="input-dark" style="width:100%; padding:8px;">
-                        <option value="public">Public</option>
-                        <option value="private">Private</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:12px; display:block; margin-bottom:4px;">Default Branch:</label>
-                    <select id="settingsDefaultBranch" class="input-dark" style="width:100%; padding:8px;">
-                        <option value="main">main</option>
-                        <option value="master">master</option>
-                    </select>
+            <!-- General Tab -->
+            <div class="settings-tab-content" id="settingsTabGeneral">
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Appearance</div>
+                <select id="settingsTheme" class="input-dark" style="width:100%; padding:7px; margin-bottom:10px; font-size:12px;" onchange="applyTheme(this.value)">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 10px 0 8px;">System</div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="settingsAutoStart" style="cursor:pointer; transform:scale(1.1);">
+                    <label for="settingsAutoStart" style="font-size:12px; cursor:pointer;">Launch at system startup (minimized to tray)</label>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <input type="checkbox" id="settingsAutoGitignore" style="cursor:pointer; transform:scale(1.1);">
-                <label for="settingsAutoGitignore" style="font-size:12px; cursor:pointer;">Auto-generate .gitignore by default</label>
+
+            <!-- API & AI Tab -->
+            <div class="settings-tab-content" id="settingsTabApi" style="display:none;">
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">API Keys</div>
+                <label style="font-size:12px;">GitHub Token:</label>
+                <input type="text" id="settingsToken" class="auth-input" placeholder="ghp_...">
+                <label style="font-size:12px;">OpenRouter Key:</label>
+                <input type="text" id="settingsRouterKey" class="auth-input" placeholder="sk-or-...">
+
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 12px 0 8px;">AI Model</div>
+                <div style="display:flex; gap:6px; margin-bottom:4px;">
+                    <input type="text" id="settingsModelSearch" class="auth-input" placeholder="Search models..." style="flex:1; padding:7px; font-size:12px;" oninput="filterModelList()">
+                    <button onclick="loadOpenRouterModels()" class="btn-primary" style="padding:5px 12px; font-size:11px; white-space:nowrap;" id="btnFetchModels">Fetch Models</button>
+                </div>
+                <select id="settingsAIModel" class="input-dark" style="width:100%; padding:7px; margin-bottom:4px;" size="1">
+                    <option value="moonshotai/kimi-k2.5">Kimi K2.5 (moonshotai/kimi-k2.5)</option>
+                </select>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:10px; color:var(--text-secondary);">Select AI model for all AI operations</div>
+                    <div id="modelCount" style="font-size:10px; color:var(--text-secondary);"></div>
+                </div>
             </div>
 
-            <!-- Appearance Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Appearance</div>
-            <select id="settingsTheme" class="input-dark" style="width:100%; padding:8px; margin-bottom:8px;" onchange="applyTheme(this.value)">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-            </select>
+            <!-- Publish Tab -->
+            <div class="settings-tab-content" id="settingsTabPublish" style="display:none;">
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Defaults</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size:12px; display:block; margin-bottom:3px;">Visibility:</label>
+                        <select id="settingsDefaultVisibility" class="input-dark" style="width:100%; padding:7px;">
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; display:block; margin-bottom:3px;">Branch:</label>
+                        <select id="settingsDefaultBranch" class="input-dark" style="width:100%; padding:7px;">
+                            <option value="main">main</option>
+                            <option value="master">master</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <input type="checkbox" id="settingsAutoGitignore" style="cursor:pointer; transform:scale(1.1);">
+                    <label for="settingsAutoGitignore" style="font-size:12px; cursor:pointer;">Auto-generate .gitignore</label>
+                </div>
 
-            <!-- System Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">System</div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <input type="checkbox" id="settingsAutoStart" style="cursor:pointer; transform:scale(1.1);">
-                <label for="settingsAutoStart" style="font-size:12px; cursor:pointer;">Launch at system startup (minimized to tray)</label>
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 10px 0 8px;">Commit Template</div>
+                <select id="settingsCommitTemplate" class="input-dark" style="width:100%; padding:7px; margin-bottom:6px; font-size:12px;" onchange="onSettingsTemplateChange()">
+                    <option value="simple">Simple — "Initial commit"</option>
+                    <option value="conventional">Conventional — "feat: initial project setup"</option>
+                    <option value="scoped">Scoped — "feat({{project_name}}): initial setup"</option>
+                    <option value="custom">Custom…</option>
+                </select>
+                <input type="text" id="settingsCommitCustom" class="auth-input"
+                    placeholder='e.g. feat: {{project_name}} initial setup'
+                    style="display:none; margin-bottom:4px;">
+                <div style="font-size:10px; color:var(--text-secondary);">Use <code style="background:var(--bg-input); padding:1px 4px; border-radius:3px; font-size:10px;">{{project_name}}</code> for repo name.</div>
             </div>
 
-            <!-- Commit Template Section -->
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 16px 0 8px;">Default Commit Template</div>
-            <select id="settingsCommitTemplate" class="input-dark" style="width:100%; padding:8px; margin-bottom:8px;" onchange="onSettingsTemplateChange()">
-                <option value="simple">Simple — "Initial commit"</option>
-                <option value="conventional">Conventional Commits — "feat: initial project setup"</option>
-                <option value="scoped">Scoped — "feat({{project_name}}): initial setup"</option>
-                <option value="custom">Custom…</option>
-            </select>
-            <input type="text" id="settingsCommitCustom" class="auth-input"
-                placeholder='e.g. feat: {{project_name}} initial setup  (use {{project_name}} for repo name)'
-                style="display:none; margin-bottom:4px;">
-            <div style="font-size:11px; color:var(--text-secondary);">Use <code style="background:var(--bg-input); padding:1px 5px; border-radius:3px;">{{project_name}}</code> as a placeholder for the repository name.</div>
-
-            <div style="text-align: right; margin-top: 20px;">
-                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            <div style="text-align: right; margin-top: 14px;">
+                <button class="btn-primary" onclick="saveSettings()" style="padding:7px 18px; font-size:12px;">Save</button>
             </div>
         </div>
     </div>
@@ -2728,6 +2753,13 @@
                 document.getElementById('status').innerText = 'Error loading.';
                 showToast(res.error, 'error');
             }
+        }
+
+        function switchSettingsTab(tab) {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.getElementById('settingsTabGeneral').style.display = tab === 'general' ? 'block' : 'none';
+            document.getElementById('settingsTabApi').style.display = tab === 'api' ? 'block' : 'none';
+            document.getElementById('settingsTabPublish').style.display = tab === 'publish' ? 'block' : 'none';
         }
 
         async function openSettings() {

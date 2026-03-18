@@ -1,6 +1,26 @@
 [
   {
     "type": "publish",
+    "repoName": "claude_history",
+    "folderPath": "C:\\Users\\umuti\\Desktop\\deneembos\\claude_history",
+    "status": "success",
+    "error": null,
+    "repoUrl": "https://github.com/palamut62/claude_history",
+    "timestamp": "2026-03-17T05:33:47.686Z",
+    "id": 1773725627687
+  },
+  {
+    "type": "publish",
+    "repoName": "claude_history",
+    "folderPath": "C:\\Users\\umuti\\Desktop\\deneembos\\claude_history",
+    "status": "error",
+    "error": "Push failed: remote: error: Trace: e83ce10405f5445fe835380f14120968c0fb3b14905938248ea68ff8e438889a        \nremote: error: See https://gh.io/lfs for more information.        \nremote: error: File node_modules/electron/dist/electron.exe is 180.04 MB; this exceeds GitHub's file size limit of 100.00 MB        \nremote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        \nTo https://github.com/palamut62/claude_history.git\n ! [remote rejected] master -> master (pre-receive hook declined)\nerror: failed to push some refs to 'https://github.com/palamut62/claude_history.git'\n",
+    "repoUrl": null,
+    "timestamp": "2026-03-17T05:26:50.911Z",
+    "id": 1773725210913
+  },
+  {
+    "type": "publish",
     "repoName": "polymarket_app",
     "folderPath": "C:\\Users\\umuti\\Desktop\\deneembos\\polymarket_app",
     "status": "success",
