@@ -2090,6 +2090,29 @@ ipcMain.handle('getDashboardStats', async (event, token) => {
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
+        // Language stats
+        const langMap = {};
+        allRepos.forEach(r => {
+            if (r.language) langMap[r.language] = (langMap[r.language] || 0) + 1;
+        });
+        const topLanguages = Object.entries(langMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+            .map(([name, count]) => ({ name, count }));
+
+        const totalStars = allRepos.reduce((s, r) => s + (r.stargazers_count || 0), 0);
+        const totalSize = allRepos.reduce((s, r) => s + (r.size || 0), 0);
+
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const recentlyUpdated = allRepos
+            .filter(r => new Date(r.updated_at) >= weekAgo)
+            .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+            .slice(0, 5)
+            .map(r => ({ name: r.name, updated: r.updated_at, language: r.language, visibility: r.private ? 'private' : 'public' }));
+
+        const archived = allRepos.filter(r => r.archived).length;
+
         return {
             success: true,
             stats: {
@@ -2100,7 +2123,12 @@ ipcMain.handle('getDashboardStats', async (event, token) => {
                 publicRepos: allRepos.filter(r => !r.private).length,
                 stale: allRepos.filter(r => new Date(r.updated_at) < sixMonthsAgo).length,
                 username: currentUser.login,
-                avatar: currentUser.avatar_url
+                avatar: currentUser.avatar_url,
+                topLanguages,
+                totalStars,
+                totalSizeMB: Math.round(totalSize / 1024),
+                recentlyUpdated,
+                archived
             },
             recentHistory: loadHistory().slice(0, 5)
         };

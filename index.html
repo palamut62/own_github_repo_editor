@@ -852,34 +852,154 @@
             display: none;
         }
 
+        /* ── Statusbar ──────────────────────────────────────────────────────── */
+        .statusbar {
+            height: 24px;
+            background: var(--bg-sidebar);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .statusbar-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .statusbar-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            flex-shrink: 0;
+        }
+
+        .statusbar-dot.disconnected {
+            background: var(--danger);
+        }
+
+        .statusbar-dot.loading {
+            background: var(--accent-yellow);
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .statusbar-separator {
+            width: 1px;
+            height: 12px;
+            background: var(--border-color);
+        }
+
+        .statusbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         /* ── Dashboard Stats ────────────────────────────────────────────────── */
+        .dash-welcome {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(88, 166, 255, 0.08) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .dash-welcome-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-blue);
+        }
+
+        .dash-welcome-text h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .dash-welcome-text p {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
         .dash-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 14px;
-            margin-top: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 12px;
         }
 
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 18px 16px;
-            text-align: center;
+            border-radius: 14px;
+            padding: 16px 14px;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-blue);
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             border-color: var(--accent-blue);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
-        .stat-icon { font-size: 22px; margin-bottom: 8px; }
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .stat-icon {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(88, 166, 255, 0.1);
+        }
 
         .stat-value {
-            font-size: 26px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             color: var(--accent-blue);
             line-height: 1;
         }
@@ -887,9 +1007,146 @@
         .stat-label {
             font-size: 11px;
             color: var(--text-secondary);
-            margin-top: 6px;
+            margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        /* Dashboard panels */
+        .dash-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .dash-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+
+        .dash-panel-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Language bars */
+        .lang-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .lang-bar-name {
+            font-size: 12px;
+            width: 80px;
+            flex-shrink: 0;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .lang-bar-track {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .lang-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .lang-bar-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            width: 28px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Recent repos list */
+        .recent-repo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .recent-repo-item:hover {
+            background: var(--bg-input);
+        }
+
+        .recent-repo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .recent-repo-name {
+            font-size: 13px;
+            font-weight: 500;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recent-repo-meta {
+            font-size: 10px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        /* Quick action cards */
+        .quick-action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .quick-action-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s, background 0.15s;
+            text-align: center;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .quick-action-icon {
+            font-size: 22px;
+        }
+
+        .quick-action-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         /* ── Publish Table (Add Project & Fork Sync) ─────────────────────────── */
@@ -1316,7 +1573,7 @@
                         </svg>
                     </div>
                 </div>
-                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.3.1</div>
+                <div style="opacity: 0.5; font-size: 10px;">GitHub Repo Editor v2.4.0</div>
             </div>
         </div>
     </div>
@@ -1362,55 +1619,125 @@
 
         <!-- ═══ DASHBOARD VIEW ═══════════════════════════════════════════════ -->
         <div id="view-dashboard" class="view-section" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; padding: 0 30px 30px;">
+            <!-- Welcome Card -->
+            <div class="dash-welcome" id="dashWelcome">
+                <img class="dash-welcome-avatar" id="dashAvatar" src="" alt="" style="display:none;">
+                <div class="dash-welcome-text">
+                    <h2 id="dashWelcomeMsg">Welcome back!</h2>
+                    <p id="dashWelcomeSub">Loading your GitHub overview...</p>
+                </div>
+                <div style="margin-left:auto; display:flex; gap:8px;">
+                    <button class="btn-dark" style="padding: 6px 14px; font-size: 12px;" onclick="loadDashboard()">🔄 Refresh</button>
+                </div>
+            </div>
+
             <!-- Stats Cards -->
             <div class="dash-grid" id="dashStatsGrid">
                 <div class="stat-card" onclick="showView('repos'); applyFilter('all')">
-                    <div class="stat-icon">📁</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon">📁</div>
+                    </div>
                     <div class="stat-value" id="dashTotalRepos">—</div>
                     <div class="stat-label">Total Repos</div>
                 </div>
                 <div class="stat-card" onclick="showView('repos'); applyFilter('source')">
-                    <div class="stat-icon">🌿</div>
-                    <div class="stat-value" id="dashSources">—</div>
-                    <div class="stat-label">Source Repos</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(63,185,80,0.12);">🌿</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-green);" id="dashSources">—</div>
+                    <div class="stat-label">Sources</div>
                 </div>
                 <div class="stat-card" onclick="showView('forkSync')">
-                    <div class="stat-icon">🔀</div>
-                    <div class="stat-value" id="dashForks">—</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(139,92,246,0.12);">🔀</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-purple);" id="dashForks">—</div>
                     <div class="stat-label">Forks</div>
                 </div>
                 <div class="stat-card" onclick="showView('repos'); filterByVisibility('private')">
-                    <div class="stat-icon">🔐</div>
-                    <div class="stat-value" id="dashPrivate">—</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(210,153,34,0.12);">🔐</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-yellow);" id="dashPrivate">—</div>
                     <div class="stat-label">Private</div>
                 </div>
                 <div class="stat-card" onclick="showView('repos'); filterByVisibility('public')">
-                    <div class="stat-icon">🌍</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(88,166,255,0.12);">🌍</div>
+                    </div>
                     <div class="stat-value" id="dashPublic">—</div>
                     <div class="stat-label">Public</div>
                 </div>
                 <div class="stat-card" onclick="showView('repos'); filterStaleRepos()">
-                    <div class="stat-icon">🕐</div>
-                    <div class="stat-value" id="dashStale">—</div>
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(248,81,73,0.12);">🕐</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--danger);" id="dashStale">—</div>
                     <div class="stat-label">Stale (&gt;6mo)</div>
+                </div>
+                <div class="stat-card" style="cursor:default;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(210,153,34,0.12);">⭐</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-yellow);" id="dashStars">—</div>
+                    <div class="stat-label">Total Stars</div>
+                </div>
+                <div class="stat-card" style="cursor:default;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background:rgba(163,113,247,0.12);">💾</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-purple); font-size:22px;" id="dashSize">—</div>
+                    <div class="stat-label">Total Size</div>
                 </div>
             </div>
 
             <!-- Quick Actions -->
-            <div style="margin-top: 24px;">
-                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px;">Quick Actions</div>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px;" onclick="showView('addProject')">➕ Add Project</button>
-                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px; background: var(--accent-blue);" onclick="showView('repos'); loadRepos()">📁 View Repos</button>
-                    <button class="btn-primary" style="padding: 10px 20px; font-size: 13px; background: #8b5cf6;" onclick="showView('forkSync'); loadForkSyncView()">🔀 Fork Sync</button>
-                    <button class="btn-dark" style="padding: 10px 20px; font-size: 13px;" onclick="loadDashboard()">🔄 Refresh</button>
+            <div style="margin-top: 20px;">
+                <div class="dash-panel-title">Quick Actions</div>
+                <div class="quick-action-grid">
+                    <div class="quick-action-card" onclick="showView('addProject')">
+                        <div class="quick-action-icon">➕</div>
+                        <div class="quick-action-label">Add Project</div>
+                    </div>
+                    <div class="quick-action-card" onclick="showView('repos'); loadRepos()">
+                        <div class="quick-action-icon">📁</div>
+                        <div class="quick-action-label">View Repos</div>
+                    </div>
+                    <div class="quick-action-card" onclick="showView('forkSync'); loadForkSyncView()">
+                        <div class="quick-action-icon">🔀</div>
+                        <div class="quick-action-label">Fork Sync</div>
+                    </div>
+                    <div class="quick-action-card" onclick="showView('localChanges')">
+                        <div class="quick-action-icon">📡</div>
+                        <div class="quick-action-label">Local Changes</div>
+                    </div>
+                    <div class="quick-action-card" onclick="showView('exploreSearch')">
+                        <div class="quick-action-icon">🔍</div>
+                        <div class="quick-action-label">Explore</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panels: Languages + Recent Activity -->
+            <div class="dash-panels">
+                <div class="dash-panel">
+                    <div class="dash-panel-title">Top Languages</div>
+                    <div id="dashLanguages">
+                        <div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:16px 0;">No data yet</div>
+                    </div>
+                </div>
+                <div class="dash-panel">
+                    <div class="dash-panel-title">Recently Updated</div>
+                    <div id="dashRecentRepos">
+                        <div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:16px 0;">No data yet</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Recent Operations -->
-            <div style="margin-top: 28px;">
-                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px;">Recent Operations</div>
-                <div id="dashRecentOps" class="history-list">
+            <div style="margin-top: 20px;">
+                <div class="dash-panel-title">Recent Operations</div>
+                <div id="dashRecentOps" class="history-list" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:8px;">
                     <div style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">No recent operations.</div>
                 </div>
             </div>
@@ -1678,6 +2005,33 @@
                     <button onclick="loadTopicRepos(null, true)" class="btn-primary" style="padding:8px 24px; border-radius:6px; font-size:13px; cursor:pointer; border:none; opacity:0.8;">
                         Load More
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statusbar -->
+        <div class="statusbar" id="statusbar">
+            <div class="statusbar-item">
+                <div class="statusbar-dot disconnected" id="statusbarDot"></div>
+                <span id="statusbarConnection">Disconnected</span>
+            </div>
+            <div class="statusbar-separator"></div>
+            <div class="statusbar-item" id="statusbarUser" style="display:none;">
+                <span>👤</span>
+                <span id="statusbarUsername">—</span>
+            </div>
+            <div class="statusbar-separator" id="statusbarSep2" style="display:none;"></div>
+            <div class="statusbar-item" id="statusbarRepoCount" style="display:none;">
+                <span>📁</span>
+                <span id="statusbarRepos">0 repos</span>
+            </div>
+            <div class="statusbar-right">
+                <div class="statusbar-item" id="statusbarActivity" style="display:none;">
+                    <span id="statusbarLastAction">—</span>
+                </div>
+                <div class="statusbar-separator"></div>
+                <div class="statusbar-item">
+                    <span id="statusbarVersion">v2.4.0</span>
                 </div>
             </div>
         </div>
@@ -4094,19 +4448,72 @@ npm start</pre>
         // ════════════════════════════════════════════════════════════════════
         // DASHBOARD
         // ════════════════════════════════════════════════════════════════════
+        const LANG_COLORS = {
+            JavaScript: '#f1e05a', TypeScript: '#3178c6', Python: '#3572A5', Java: '#b07219',
+            'C++': '#f34b7d', C: '#555555', Go: '#00ADD8', Rust: '#dea584', Ruby: '#701516',
+            PHP: '#4F5D95', Swift: '#F05138', Kotlin: '#A97BFF', Dart: '#00B4AB',
+            Shell: '#89e051', HTML: '#e34c26', CSS: '#563d7c', Vue: '#41b883',
+            'C#': '#178600', Lua: '#000080', R: '#198CE7', Scala: '#c22d40',
+            Jupyter: '#DA5B0B', Dockerfile: '#384d54', SCSS: '#c6538c', Makefile: '#427819',
+        };
+
+        function updateStatusbar(data) {
+            const dot = document.getElementById('statusbarDot');
+            const conn = document.getElementById('statusbarConnection');
+            const userEl = document.getElementById('statusbarUser');
+            const usernameEl = document.getElementById('statusbarUsername');
+            const repoCountEl = document.getElementById('statusbarRepoCount');
+            const reposEl = document.getElementById('statusbarRepos');
+            const sep2 = document.getElementById('statusbarSep2');
+
+            if (data.connected) {
+                dot.className = 'statusbar-dot';
+                conn.textContent = 'Connected';
+                if (data.username) {
+                    usernameEl.textContent = data.username;
+                    userEl.style.display = 'flex';
+                    sep2.style.display = 'block';
+                }
+                if (data.repoCount !== undefined) {
+                    reposEl.textContent = data.repoCount + ' repos';
+                    repoCountEl.style.display = 'flex';
+                }
+            } else {
+                dot.className = 'statusbar-dot disconnected';
+                conn.textContent = 'Disconnected';
+            }
+        }
+
+        function setStatusbarLoading(loading) {
+            const dot = document.getElementById('statusbarDot');
+            if (loading) {
+                dot.className = 'statusbar-dot loading';
+                document.getElementById('statusbarConnection').textContent = 'Loading…';
+            }
+        }
+
+        function setStatusbarAction(text) {
+            const el = document.getElementById('statusbarActivity');
+            const span = document.getElementById('statusbarLastAction');
+            el.style.display = 'flex';
+            span.textContent = text;
+        }
+
         async function loadDashboard() {
             const token = await window.api.getToken();
             if (!token) {
                 showToast('Please save a GitHub token in Settings first.', 'warning');
+                updateStatusbar({ connected: false });
                 return;
             }
 
             // Show loading state
-            ['dashTotalRepos','dashSources','dashForks','dashPrivate','dashPublic','dashStale'].forEach(id => {
+            ['dashTotalRepos','dashSources','dashForks','dashPrivate','dashPublic','dashStale','dashStars','dashSize'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = '…';
             });
 
+            setStatusbarLoading(true);
             document.getElementById('status').innerText = 'Loading dashboard…';
 
             const result = await window.api.getDashboardStats(token);
@@ -4115,19 +4522,92 @@ npm start</pre>
 
             if (!result.success) {
                 showToast('Dashboard load failed: ' + result.error, 'error');
+                updateStatusbar({ connected: false });
                 return;
             }
 
             const s = result.stats;
+
+            // Update statusbar
+            updateStatusbar({ connected: true, username: s.username, repoCount: s.totalRepos });
+            setStatusbarAction('Dashboard loaded');
+
+            // Welcome card
+            if (s.avatar) {
+                const avatarEl = document.getElementById('dashAvatar');
+                avatarEl.src = s.avatar;
+                avatarEl.style.display = 'block';
+            }
+            document.getElementById('dashWelcomeMsg').textContent = `Welcome, ${s.username}!`;
+            document.getElementById('dashWelcomeSub').textContent = `${s.totalRepos} repositories · ${s.totalStars || 0} stars · ${s.totalSizeMB || 0} MB total`;
+
+            // Stats
             document.getElementById('dashTotalRepos').innerText = s.totalRepos;
             document.getElementById('dashSources').innerText    = s.sources;
             document.getElementById('dashForks').innerText      = s.forks;
             document.getElementById('dashPrivate').innerText    = s.privateRepos;
             document.getElementById('dashPublic').innerText     = s.publicRepos;
             document.getElementById('dashStale').innerText      = s.stale;
+            document.getElementById('dashStars').innerText      = s.totalStars || 0;
+            document.getElementById('dashSize').innerText       = (s.totalSizeMB || 0) + ' MB';
+
+            // Languages
+            renderDashLanguages(s.topLanguages || []);
+
+            // Recently updated
+            renderDashRecentRepos(s.recentlyUpdated || []);
 
             // Recent history
             renderRecentOps(result.recentHistory || []);
+        }
+
+        function renderDashLanguages(langs) {
+            const container = document.getElementById('dashLanguages');
+            if (!langs.length) {
+                container.innerHTML = '<div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:16px 0;">No language data</div>';
+                return;
+            }
+            const max = langs[0].count;
+            container.innerHTML = langs.map(l => {
+                const pct = Math.round((l.count / max) * 100);
+                const color = LANG_COLORS[l.name] || '#888';
+                return `<div class="lang-bar-row">
+                    <div class="lang-bar-name">${l.name}</div>
+                    <div class="lang-bar-track">
+                        <div class="lang-bar-fill" style="width:${pct}%; background:${color};"></div>
+                    </div>
+                    <div class="lang-bar-count">${l.count}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDashRecentRepos(repos) {
+            const container = document.getElementById('dashRecentRepos');
+            if (!repos.length) {
+                container.innerHTML = '<div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:16px 0;">No recent updates</div>';
+                return;
+            }
+            container.innerHTML = repos.map(r => {
+                const color = LANG_COLORS[r.language] || '#888';
+                const ago = timeAgo(new Date(r.updated));
+                const visIcon = r.visibility === 'private' ? '🔐' : '🌍';
+                return `<div class="recent-repo-item" onclick="showView('repos'); loadRepos()">
+                    <div class="recent-repo-dot" style="background:${color};"></div>
+                    <div class="recent-repo-name">${r.name}</div>
+                    <div class="recent-repo-meta">${visIcon} ${ago}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.floor(hours / 24);
+            return days + 'd ago';
         }
 
         function renderRecentOps(ops) {
