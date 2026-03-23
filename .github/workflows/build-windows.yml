@@ -3,6 +3,9 @@ name: Build Windows Installer
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-win:
     runs-on: windows-latest
@@ -25,3 +28,10 @@ jobs:
             dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts (backup)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-installer
+          path: dist/*.exe
