@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } = require
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const { execSync, execFileSync } = require('child_process');
+const { execSync, execFileSync, spawn } = require('child_process');
 
 let mainWindow;
 let tray = null;
@@ -2312,6 +2312,43 @@ function saveConfig(update) {
 
 ipcMain.handle('getAppConfig', async () => loadConfig());
 ipcMain.handle('saveAppConfig', async (event, update) => saveConfig(update));
+
+// ─── Clone Repo ──────────────────────────────────────────────────────────────
+ipcMain.handle('selectClonePath', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+        title: 'Select Clone Directory'
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+});
+
+ipcMain.handle('cloneRepo', async (event, { cloneUrl, clonePath, repoName }) => {
+    try {
+        if (!clonePath) return { success: false, error: 'Clone path not set. Please set it in Settings.' };
+        if (!fs.existsSync(clonePath)) {
+            fs.mkdirSync(clonePath, { recursive: true });
+        }
+        const dest = path.join(clonePath, repoName);
+        if (fs.existsSync(dest)) {
+            return { success: false, error: `Directory already exists: ${repoName}` };
+        }
+        return new Promise((resolve) => {
+            const proc = spawn('git', ['clone', cloneUrl, dest], { stdio: ['ignore', 'pipe', 'pipe'] });
+            let stderr = '';
+            proc.stderr.on('data', (d) => { stderr += d.toString(); });
+            proc.on('close', (code) => {
+                if (code === 0) resolve({ success: true, path: dest });
+                else resolve({ success: false, error: stderr || `git clone exited with code ${code}` });
+            });
+            proc.on('error', (err) => {
+                resolve({ success: false, error: err.message });
+            });
+        });
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
 
 ipcMain.handle('setAutoStart', async (event, enabled) => {
     try {

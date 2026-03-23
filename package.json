@@ -1,10 +1,11 @@
 {
   "name": "github-repo-cleaner",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win",
+    "build:linux": "electron-builder --linux AppImage deb",
     "build:portable": "electron-builder --win portable",
     "icons": "node generate-icons.js"
   },
@@ -46,6 +47,12 @@
           "arch": ["x64"]
         }
       ]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "assets/icon.png",
+      "category": "Utility",
+      "maintainer": "Antigravity <antigravity@localhost>"
     },
     "nsis": {
       "oneClick": false,

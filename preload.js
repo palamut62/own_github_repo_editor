@@ -98,5 +98,9 @@ contextBridge.exposeInMainWorld('api', {
     unstarRepo: (data) => ipcRenderer.invoke('unstarRepo', data),
     checkStarred: (data) => ipcRenderer.invoke('checkStarred', data),
     forkRepo: (data) => ipcRenderer.invoke('forkRepo', data),
-    getExploreRepoDetail: (data) => ipcRenderer.invoke('getExploreRepoDetail', data)
+    getExploreRepoDetail: (data) => ipcRenderer.invoke('getExploreRepoDetail', data),
+
+    // Clone
+    selectClonePath: () => ipcRenderer.invoke('selectClonePath'),
+    cloneRepo: (data) => ipcRenderer.invoke('cloneRepo', data)
 });

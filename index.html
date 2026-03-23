@@ -2073,6 +2073,13 @@
                     <option value="light">Light</option>
                 </select>
 
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 10px 0 8px;">Clone</div>
+                <label style="font-size:12px;">Clone Directory:</label>
+                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                    <input type="text" id="settingsClonePath" class="auth-input" placeholder="Select clone directory..." readonly style="flex:1; cursor:pointer; font-size:12px;">
+                    <button onclick="selectClonePath()" class="btn-primary" style="padding:5px 12px; font-size:11px; white-space:nowrap;">Browse</button>
+                </div>
+
                 <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin: 10px 0 8px;">System</div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <input type="checkbox" id="settingsAutoStart" style="cursor:pointer; transform:scale(1.1);">
@@ -3035,7 +3042,10 @@
                                 <div class="badge-star">⭐ ${repo.stargazers_count}</div>
                                 ${licenseBadge}
                             </div>
-                            <div>${new Date(repo.updated_at).toLocaleDateString()}</div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button class="clone-btn" title="Clone to local" onclick="event.stopPropagation(); cloneRepoToLocal('${repo.clone_url}', '${repo.name}', this)" style="background:none; border:1px solid var(--border-color); border-radius:6px; padding:3px 8px; cursor:pointer; font-size:14px; color:var(--text-primary);">⬇</button>
+                                <div>${new Date(repo.updated_at).toLocaleDateString()}</div>
+                            </div>
                         </div>
                     `;
                     // Click card to toggle check
@@ -3142,6 +3152,7 @@
 
             document.getElementById('settingsTheme').value = config.theme || 'dark';
             document.getElementById('settingsAutoStart').checked = config.autoStart === true;
+            document.getElementById('settingsClonePath').value = config.clonePath || '';
 
             document.getElementById('settingsModal').style.display = 'flex';
 
@@ -3244,7 +3255,8 @@
                 commitTemplateCustom: document.getElementById('settingsCommitCustom').value,
                 aiModel:             document.getElementById('settingsAIModel').value,
                 theme:               document.getElementById('settingsTheme').value,
-                autoStart:           document.getElementById('settingsAutoStart').checked
+                autoStart:           document.getElementById('settingsAutoStart').checked,
+                clonePath:           document.getElementById('settingsClonePath').value
             };
             await window.api.saveAppConfig(newConfig);
             await window.api.setAutoStart(newConfig.autoStart);
@@ -3272,6 +3284,31 @@
                 loadDashboard();
                 loadRepos();
             }
+        }
+
+        async function selectClonePath() {
+            const p = await window.api.selectClonePath();
+            if (p) document.getElementById('settingsClonePath').value = p;
+        }
+
+        async function cloneRepoToLocal(cloneUrl, repoName, btn) {
+            const config = cachedAppConfig || {};
+            if (!config.clonePath) {
+                showToast('Clone path not set. Please set it in Settings → General → Clone.', 'error');
+                return;
+            }
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳';
+            const res = await window.api.cloneRepo({ cloneUrl, clonePath: config.clonePath, repoName });
+            if (res.success) {
+                showToast(`Cloned ${repoName} successfully!`, 'success');
+                btn.textContent = '✅';
+            } else {
+                showToast(res.error, 'error');
+                btn.textContent = origText;
+            }
+            btn.disabled = false;
         }
 
         // --- Actions ---
@@ -5465,10 +5502,9 @@ npm start</pre>
 
             const cloneBtn = document.createElement('button');
             cloneBtn.style.cssText = 'padding:4px 10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary); font-size:12px; cursor:pointer;';
-            cloneBtn.textContent = '\uD83D\uDCCB Clone';
+            cloneBtn.textContent = '\u2B07 Clone';
             cloneBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(repo.clone_url);
-                showToast('Clone URL copied!', 'success');
+                cloneRepoToLocal(repo.clone_url, repo.name, cloneBtn);
             });
 
             actionsDiv.appendChild(starBtn);
